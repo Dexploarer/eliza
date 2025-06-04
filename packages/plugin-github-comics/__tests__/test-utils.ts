@@ -11,10 +11,10 @@ import {
 } from '@elizaos/core';
 
 /**
- * Creates a mock runtime for testing
+ * Constructs a mock runtime object with default properties and mocked methods for use in tests.
  *
- * @param overrides - Optional overrides for the default mock methods and properties
- * @returns A mock runtime for testing
+ * @param overrides - Optional properties or methods to override the default mock runtime.
+ * @returns A mock runtime object suitable for testing agent runtime interactions.
  */
 export function createMockRuntime(overrides: Partial<MockRuntime> = {}): MockRuntime {
   // Create base mock runtime with defaults
@@ -57,10 +57,10 @@ export function createMockRuntime(overrides: Partial<MockRuntime> = {}): MockRun
 }
 
 /**
- * Creates a mock Memory object for testing
+ * Generates a mock Memory object with default properties for testing purposes.
  *
- * @param overrides - Optional overrides for the default memory properties
- * @returns A mock memory object
+ * @param overrides - Properties to override the default mock values.
+ * @returns A partial Memory object populated with test data and any provided overrides.
  */
 export function createMockMemory(overrides: Partial<Memory> = {}): Partial<Memory> {
   return {
@@ -78,10 +78,12 @@ export function createMockMemory(overrides: Partial<Memory> = {}): Partial<Memor
 }
 
 /**
- * Creates a mock State object for testing
+ * Generates a partial mock State object with default values for testing.
  *
- * @param overrides - Optional overrides for the default state properties
- * @returns A mock state object
+ * The returned object includes a `values` property with a default `recentMessages` string, and a `data` property. Both can be customized via the {@link overrides} parameter.
+ *
+ * @param overrides - Properties to override in the default mock state.
+ * @returns A partial State object suitable for use in tests.
  */
 export function createMockState(overrides: Partial<State> = {}): Partial<State> {
   return {
@@ -97,10 +99,10 @@ export function createMockState(overrides: Partial<State> = {}): Partial<State> 
 }
 
 /**
- * Creates a standardized setup for testing with consistent mock objects
+ * Sets up a test environment with mock runtime, message, state, and a callback function.
  *
- * @param overrides - Optional overrides for default mock implementations
- * @returns An object containing mockRuntime, mockMessage, mockState, and callbackFn
+ * @param overrides - Optional overrides for the mock runtime, message, and state objects.
+ * @returns An object containing the mock runtime, mock message, mock state, and a mocked callback function.
  */
 export function setupTest(
   overrides: {
@@ -150,7 +152,11 @@ export interface MockRuntime {
   [key: string]: any;
 }
 
-// Add spy on logger for common usage in tests
+/**
+ * Mocks all logger methods (`info`, `error`, `warn`, `debug`) with no-op implementations for testing.
+ *
+ * @returns A function that restores the original logger methods when called.
+ */
 export function setupLoggerSpies() {
   vi.spyOn(logger, 'info').mockImplementation(() => {});
   vi.spyOn(logger, 'error').mockImplementation(() => {});
