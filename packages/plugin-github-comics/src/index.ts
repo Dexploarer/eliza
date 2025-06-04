@@ -13,6 +13,15 @@ export interface RepoInfo {
   description: string | null;
 }
 
+/**
+ * Retrieves the public repositories for a specified GitHub user.
+ *
+ * @param user - The GitHub username whose repositories will be fetched.
+ * @param token - Optional GitHub access token for authenticated requests.
+ * @returns An array of repository information objects, each containing the repository name and description.
+ *
+ * @throws {Error} If the GitHub API request fails or returns a non-OK response.
+ */
 export async function fetchRepositories(user: string, token?: string): Promise<RepoInfo[]> {
   const url = `https://api.github.com/users/${user}/repos`;
   const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
@@ -25,6 +34,13 @@ export async function fetchRepositories(user: string, token?: string): Promise<R
   return data.map((repo) => ({ name: repo.name, description: repo.description }));
 }
 
+/**
+ * Constructs a prompt for generating a four-panel comic strip summarizing a GitHub user's repositories.
+ *
+ * @param repos - The repositories to include in the summary.
+ * @param user - The GitHub username whose repositories are being summarized.
+ * @returns A formatted prompt string describing the comic strip to generate.
+ */
 export function createComicPrompt(repos: RepoInfo[], user: string): string {
   const top = repos.slice(0, 3).map((r) => `${r.name}: ${r.description ?? 'No description'}`).join('\n');
   return `Create a four panel comic strip summarizing GitHub user ${user}'s repositories.\n${top}`;
@@ -32,6 +48,15 @@ export function createComicPrompt(repos: RepoInfo[], user: string): string {
 
 export interface ImageResult { url: string }
 
+/**
+ * Generates a comic strip image using OpenAI's image generation API with the provided prompt.
+ *
+ * @param prompt - The prompt describing the comic to generate.
+ * @param apiKey - The OpenAI API key for authentication.
+ * @returns An object containing the URL of the generated comic image.
+ *
+ * @throws {Error} If the OpenAI API response is not successful, including the status code and error message.
+ */
 export async function generateComicImage(prompt: string, apiKey: string): Promise<ImageResult> {
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
