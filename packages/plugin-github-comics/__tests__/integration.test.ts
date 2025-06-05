@@ -1,6 +1,11 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, type Mock } from 'vitest';
 import * as plugin from '../src/index';
 import { createMockRuntime, setupLoggerSpies, setupTest } from './test-utils';
+import fetch from 'node-fetch';
+
+vi.mock('node-fetch');
+
+const mockedFetch = fetch as unknown as Mock;
 
 beforeAll(() => {
   setupLoggerSpies();
@@ -19,8 +24,15 @@ describe('Integration: githubComicsPlugin', () => {
 
     const { mockMessage, mockState, callbackFn } = setupTest();
 
-    vi.spyOn(plugin, 'fetchRepositories').mockResolvedValue([{ name: 'repo', description: 'desc' }]);
-    vi.spyOn(plugin, 'generateComicImage').mockResolvedValue({ url: 'http://image' });
+    mockedFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [{ name: 'repo', description: 'desc' }],
+    } as any);
+
+    mockedFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ data: [{ url: 'http://image' }] }),
+    } as any);
 
     const action = plugin.githubComicsPlugin.actions?.[0];
     if (!action) throw new Error('action missing');

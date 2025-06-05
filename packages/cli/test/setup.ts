@@ -1,5 +1,9 @@
 import { vi } from 'vitest';
 import type { Mock } from 'vitest';
+import { setMaxListeners } from 'events';
+
+// Increase listeners to avoid warnings during tests
+setMaxListeners(20);
 
 // Global mock for node:fs/promises IS NOW HANDLED by the 'node:fs' mock below
 
