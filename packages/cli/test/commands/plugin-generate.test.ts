@@ -51,13 +51,15 @@ describe('plugins generate command', () => {
     await fs.ensureDir(testDir);
     specFile = path.join(testDir, 'test-spec.json');
 
-    // Set a mock API key
+    // Set mock API keys
     process.env.ANTHROPIC_API_KEY = 'test-key';
+    process.env.API_KEY = 'mock-api-key';
   });
 
   afterEach(async () => {
     await fs.remove(testDir);
     delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.API_KEY;
   });
 
   it('should show help for generate command', async () => {

@@ -13,6 +13,7 @@ env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  POSTGRES_URL_INSTRUMENTATION: ${{ secrets.POSTGRES_URL_INSTRUMENTATION }}
   ELIZA_NONINTERACTIVE: true
 
 jobs:
@@ -58,6 +59,11 @@ jobs:
         env:
           SHARP_IGNORE_GLOBAL_LIBVIPS: '1'
         run: bun install
+
+      - name: Configure git author
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "CI Runner"
 
       - name: Check for API key
         run: |

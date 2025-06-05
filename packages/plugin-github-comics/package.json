@@ -8,6 +8,7 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@elizaos/core": "^1.0.0",
+    "@elizaos/plugin-local-ai": "^1.0.0",
     "node-fetch": "^3.3.2",
     "zod": "3.24.2"
   },
@@ -20,7 +21,7 @@
   "scripts": {
     "build": "tsup",
     "test:component": "vitest run",
-    "test:e2e": "elizaos test",
+    "test:e2e": "OPENAI_API_KEY=test-key elizaos test",
     "test": "npm run test:component && npm run test:e2e"
   },
   "agentConfig": {

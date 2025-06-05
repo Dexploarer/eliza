@@ -25,6 +25,10 @@ export default defineConfig({
     options.sourceRoot = './'; // Set source root to help with source mapping
     options.sourcesContent = true;
     options.outbase = './src'; // Makes output paths match input structure
+    options.define = {
+      ...(options.define || {}),
+      'process.env.ASSERTIONS': 'true',
+    };
   },
   keepNames: true, // Preserve names for better debugging
 });
