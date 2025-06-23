@@ -678,10 +678,15 @@ export class MessageBusService extends Service {
       'Content-Type': 'application/json',
     };
 
-    // Add authentication header if ELIZA_SERVER_AUTH_TOKEN is configured
-    const serverAuthToken = process.env.ELIZA_SERVER_AUTH_TOKEN;
-    if (serverAuthToken) {
-      headers['X-API-KEY'] = serverAuthToken;
+    const token = process.env.ELIZA_SERVER_AUTH_TOKEN;
+    if (token) {
+      const method = process.env.ELIZA_SERVER_AUTH_METHOD || 'apiKey';
+      if (method.toLowerCase() === 'bearer') {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        const headerName = process.env.ELIZA_SERVER_AUTH_HEADER || 'X-API-KEY';
+        headers[headerName] = token;
+      }
     }
 
     return headers;
