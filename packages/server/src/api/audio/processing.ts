@@ -1,5 +1,12 @@
-import type { IAgentRuntime, UUID } from '@elizaos/core';
-import { logger, ModelType, validateUuid } from '@elizaos/core';
+import type { IAgentRuntime, UUID, Memory } from '@elizaos/core';
+import {
+  logger,
+  ModelType,
+  validateUuid,
+  createUniqueUuid,
+  EventType,
+  ChannelType,
+} from '@elizaos/core';
 import express from 'express';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -147,10 +154,42 @@ export function createAudioProcessingRouter(agents: Map<UUID, IAgentRuntime>): e
         const audioBuffer = await fs.promises.readFile(securePath);
         const transcription = await runtime.useModel(ModelType.TRANSCRIPTION, audioBuffer);
 
-        // Placeholder: This part needs to be updated to align with message creation.
+        const roomId = createUniqueUuid(runtime, `audio-room-${agentId}`);
+        const entityId = createUniqueUuid(runtime, 'audio-user');
+        const worldId = createUniqueUuid(runtime, 'audio-world');
+
+        await runtime.ensureConnection({
+          entityId,
+          roomId,
+          worldId,
+          name: 'AudioUser',
+          userName: 'AudioUser',
+          source: 'audio',
+          type: ChannelType.API,
+          worldName: 'Audio',
+        });
+
+        const messageId = createUniqueUuid(runtime, Date.now().toString());
+        const memory: Memory = {
+          id: messageId,
+          entityId,
+          agentId: runtime.agentId,
+          roomId,
+          worldId,
+          content: { text: transcription, source: 'audio', channelType: ChannelType.API },
+          createdAt: Date.now(),
+        };
+
+        await runtime.createMemory(memory, 'messages');
+        await runtime.emitEvent(EventType.VOICE_MESSAGE_RECEIVED, {
+          runtime,
+          message: memory,
+          source: 'audio',
+        });
+
         logger.info(`[AUDIO MESSAGE] Transcription for agent ${agentId}: ${transcription}`);
         cleanupUploadedFile(audioFile);
-        sendSuccess(res, { transcription, message: 'Audio transcribed, further processing TBD.' });
+        sendSuccess(res, { transcription, memoryId: memory.id });
       } catch (error) {
         logger.error('[AUDIO MESSAGE] Error processing audio:', error);
         cleanupUploadedFile(audioFile);

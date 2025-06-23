@@ -89,9 +89,10 @@ Upload and process an audio file as a message through a specific agent
                     type: 'string',
                     description: 'Transcribed text from the audio file',
                   },
-                  message: {
+                  memoryId: {
                     type: 'string',
-                    example: 'Audio transcribed, further processing TBD.',
+                    format: 'uuid',
+                    description: 'ID of the created message memory',
                   },
                 },
               },
@@ -228,8 +229,9 @@ This endpoint is subject to upload rate limiting and file system rate limiting t
 1. Audio file is uploaded and validated
 2. File path security checks are performed
 3. Audio file is read and processed by the agent's transcription model
-4. Transcribed text is returned
-5. File is automatically cleaned up after processing
+4. A message memory is created from the transcription and dispatched for processing
+5. Transcribed text and the memory ID are returned
+6. File is automatically cleaned up after processing
 
 ## Notes
 
@@ -237,3 +239,4 @@ This endpoint is subject to upload rate limiting and file system rate limiting t
 - Files are automatically deleted after processing for security
 - The agent must have transcription capabilities enabled
 - Further message processing may be implemented in future versions
+- The resulting message is dispatched through the agent's message bus for handling
