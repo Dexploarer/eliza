@@ -427,7 +427,7 @@ export function createApiRouter(
   router.use('/memory', memoryRouter(agents, serverInstance));
 
   // Mount audio router at /audio - handles audio processing, transcription, and voice operations
-  router.use('/audio', audioRouter(agents));
+  router.use('/audio', audioRouter(agents, serverInstance));
 
   // Mount runtime router at /server - handles server runtime operations and management
   router.use('/server', runtimeRouter(agents, serverInstance));
