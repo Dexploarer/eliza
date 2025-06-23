@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { elevenLabsVoiceModels } from '@/config/voice-models';
+import { elevenLabsVoiceMetadata } from '@elizaos/core';
 import type { VoiceModel } from '@/config/voice-models';
 
-// TODO: Move this to a shared config file, or the 11labs plugin once plugin categories are implemented
+const defaultVoiceModels: VoiceModel[] = elevenLabsVoiceMetadata.map((v) => ({
+  value: v.id,
+  label: `ElevenLabs - ${v.name}`,
+  provider: 'elevenlabs',
+  gender: v.gender,
+  language: v.language,
+  features: v.features,
+}));
 
 interface ElevenLabsVoice {
   voice_id: string;
@@ -31,9 +38,9 @@ export function useElevenLabsVoices() {
   return useQuery({
     queryKey: ['elevenlabs-voices', apiKey],
     queryFn: async () => {
-      // If no API key is available, use the hardcoded models
+      // If no API key is available, use the default metadata
       if (!apiKey) {
-        return elevenLabsVoiceModels;
+        return defaultVoiceModels;
       }
 
       try {
@@ -46,7 +53,7 @@ export function useElevenLabsVoices() {
 
         if (!response.ok) {
           console.error('Failed to fetch ElevenLabs voices:', response.statusText);
-          return elevenLabsVoiceModels;
+          return defaultVoiceModels;
         }
 
         const data = await response.json();
@@ -64,7 +71,7 @@ export function useElevenLabsVoices() {
         return apiVoices;
       } catch (error) {
         console.error('Error fetching ElevenLabs voices:', error);
-        return elevenLabsVoiceModels;
+        return defaultVoiceModels;
       }
     },
     // Refresh the data every hour

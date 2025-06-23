@@ -28,48 +28,18 @@ export const localVoiceModels: VoiceModel[] = [
   { value: 'male_2', label: 'Local Voice - Male 2', provider: 'local', gender: 'male' },
 ];
 
-export const elevenLabsVoiceModels: VoiceModel[] = [
-  {
-    value: 'EXAVITQu4vr4xnSDxMaL',
-    label: 'ElevenLabs - Rachel (Default)',
+import { elevenLabsVoiceMetadata } from '@elizaos/core';
+
+export const elevenLabsVoiceModels: VoiceModel[] = elevenLabsVoiceMetadata.map(
+  (voice) => ({
+    value: voice.id,
+    label: `ElevenLabs - ${voice.name}`,
     provider: 'elevenlabs',
-    gender: 'female',
-    language: 'en',
-    features: ['natural', 'professional'],
-  },
-  {
-    value: '21m00Tcm4TlvDq8ikWAM',
-    label: 'ElevenLabs - Adam',
-    provider: 'elevenlabs',
-    gender: 'male',
-    language: 'en',
-    features: ['natural', 'professional'],
-  },
-  {
-    value: 'AZnzlk1XvdvUeBnXmlld',
-    label: 'ElevenLabs - Domi',
-    provider: 'elevenlabs',
-    gender: 'female',
-    language: 'en',
-    features: ['natural', 'friendly'],
-  },
-  {
-    value: 'MF3mGyEYCl7XYWbV9V6O',
-    label: 'ElevenLabs - Elli',
-    provider: 'elevenlabs',
-    gender: 'female',
-    language: 'en',
-    features: ['natural', 'friendly'],
-  },
-  {
-    value: 'TxGEqnHWrfWFTfGW9XjX',
-    label: 'ElevenLabs - Josh',
-    provider: 'elevenlabs',
-    gender: 'male',
-    language: 'en',
-    features: ['natural', 'professional'],
-  },
-];
+    gender: voice.gender,
+    language: voice.language,
+    features: voice.features,
+  })
+);
 
 export const openAIVoiceModels: VoiceModel[] = [
   {
