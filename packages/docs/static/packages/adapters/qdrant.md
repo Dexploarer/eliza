@@ -45,4 +45,4 @@ Add the adapter to your ElizaOS configuration:
 
 ## Integration
 
-The adapter implements knowledge management, vector similarity search, and caching operations for ElizaOS, while other database functions are stubbed but not implemented.
+The adapter implements knowledge management, vector similarity search, caching operations, as well as memory management and participant tracking features.
