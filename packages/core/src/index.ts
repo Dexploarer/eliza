@@ -19,4 +19,7 @@ export * from './settings';
 export * from './services';
 export * from './specs';
 
+// Voices
+export * from './voices/elevenlabs';
+
 export * from './sentry/instrument';
