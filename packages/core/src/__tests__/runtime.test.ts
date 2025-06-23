@@ -599,5 +599,12 @@ describe('AgentRuntime (Non-Instrumented Baseline)', () => {
         expect(runtime.actions).toContain(action2);
       });
     });
+
+    describe('registered sources', () => {
+      it('should store custom sources', () => {
+        runtime.registerSource('custom');
+        expect(runtime.getRegisteredSources()).toContain('custom');
+      });
+    });
   });
 }); // End of main describe block
