@@ -96,6 +96,7 @@ export class AgentRuntime implements IAgentRuntime {
   routes: Route[] = [];
   private taskWorkers = new Map<string, TaskWorker>();
   private sendHandlers = new Map<string, SendHandlerFunction>();
+  private registeredSources = new Set<string>();
   private eventHandlers: Map<string, ((data: any) => void)[]> = new Map();
 
   // A map of all plugins available to the runtime, keyed by name, for dependency resolution.
@@ -1960,6 +1961,19 @@ export class AgentRuntime implements IAgentRuntime {
     }
     this.sendHandlers.set(source, handler);
     this.logger.info(`Registered send handler for source: ${source}`);
+    // Automatically track source identifiers when a handler is registered
+    this.registeredSources.add(source);
+  }
+
+  registerSource(source: string): void {
+    if (!this.registeredSources.has(source)) {
+      this.logger.info(`Registered source identifier: ${source}`);
+      this.registeredSources.add(source);
+    }
+  }
+
+  getRegisteredSources(): string[] {
+    return Array.from(this.registeredSources);
   }
   async sendMessageToTarget(target: TargetInfo, content: Content): Promise<void> {
     const handler = this.sendHandlers.get(target.source);

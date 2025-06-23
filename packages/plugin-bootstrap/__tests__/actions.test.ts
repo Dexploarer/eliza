@@ -1219,4 +1219,18 @@ describe('Send Message Action (Extended)', () => {
       })
     );
   });
+
+  it('validate should include registered sources', async () => {
+    const { mockRuntime, mockMessage } = setupActionTest({});
+    mockRuntime.getComponents = mock().mockResolvedValue([]);
+    mockRuntime.registerSource('customSource');
+
+    const result = await sendMessageAction.validate(
+      mockRuntime as IAgentRuntime,
+      mockMessage as Memory,
+      undefined as unknown as State
+    );
+
+    expect(result).toBe(true);
+  });
 });

@@ -808,6 +808,14 @@ export class AgentRuntime implements IAgentRuntime {
     this._runtime.registerSendHandler(source, handler);
   }
 
+  registerSource(source: string): void {
+    this._runtime.registerSource(source);
+  }
+
+  getRegisteredSources(): string[] {
+    return this._runtime.getRegisteredSources();
+  }
+
   /**
    * Send a message to a specific target
    * @param target - The target information including source and channel/user ID

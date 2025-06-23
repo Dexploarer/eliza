@@ -165,6 +165,8 @@ export interface IAgentRuntime extends IDatabaseAdapter {
   getRooms(worldId: UUID): Promise<Room[]>;
 
   registerSendHandler(source: string, handler: SendHandlerFunction): void;
+  registerSource(source: string): void;
+  getRegisteredSources(): string[];
 
   sendMessageToTarget(target: TargetInfo, content: Content): Promise<void>;
 }
