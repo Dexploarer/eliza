@@ -132,42 +132,42 @@ function extractPlugin(module: any): Plugin {
  */
 export async function loadProject(dir: string): Promise<Project> {
   try {
-    // TODO: Get the package.json and get the main field
-    const packageJson = JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8'));
-    const main = packageJson.main;
-    if (!main) {
-      logger.warn('No main field found in package.json, using default character');
+    let main: string | undefined;
 
-      // Create a fallback project with the default Eliza character
-      // Use deterministic UUID based on character name to match runtime behavior
-      const defaultCharacterName = 'Eliza (Default)';
-      const elizaCharacter = getElizaCharacter(); // Get the filtered character based on env vars
-      const defaultAgent: ProjectAgent = {
-        character: {
-          ...elizaCharacter,
-          id: stringToUuid(defaultCharacterName) as UUID,
-          name: defaultCharacterName,
-        },
-        init: async () => {
-          logger.info('Initializing default Eliza character');
-        },
-      };
-
-      return {
-        agents: [defaultAgent],
-        dir,
-      };
+    const packageJsonPath = path.join(dir, 'package.json');
+    if (fs.existsSync(packageJsonPath)) {
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+        main = packageJson.main;
+      } catch (err) {
+        logger.warn('Failed to parse package.json:', err);
+      }
     }
 
-    // Try to find the project's entry point
-    const entryPoints = [
-      path.join(dir, main),
+    const entryPoints: string[] = [];
+
+    if (main) {
+      const resolvedMain = path.resolve(dir, main);
+      const ext = path.extname(resolvedMain);
+
+      if (ext) {
+        entryPoints.push(resolvedMain);
+      } else {
+        entryPoints.push(resolvedMain + '.ts');
+        entryPoints.push(resolvedMain + '.js');
+        entryPoints.push(resolvedMain);
+      }
+    } else {
+      logger.debug('No main field found in package.json, using fallback entry points');
+    }
+
+    entryPoints.push(
       path.join(dir, 'dist/index.js'),
       path.join(dir, 'src/index.ts'),
       path.join(dir, 'src/index.js'),
       path.join(dir, 'index.ts'),
       path.join(dir, 'index.js'),
-    ];
+    );
 
     let projectModule: ProjectModule | null = null;
     for (const entryPoint of entryPoints) {
