@@ -37,6 +37,19 @@ beforeEach(() => {
   spyOn(logger, 'debug').mockImplementation(() => {});
 });
 
+describe('Send Message Action - Registered Sources', () => {
+  it('validate should use runtime registered sources', async () => {
+    const setup = setupActionTest({ runtimeOverrides: { getComponents: mock().mockResolvedValue([]) } });
+    setup.mockRuntime.registerMessageSource('discord');
+    const valid = await sendMessageAction.validate(
+      setup.mockRuntime as IAgentRuntime,
+      setup.mockMessage as Memory,
+      setup.mockState as State
+    );
+    expect(valid).toBe(true);
+  });
+});
+
 describe('Reply Action', () => {
   let mockRuntime: MockRuntime;
   let mockMessage: Partial<Memory>;

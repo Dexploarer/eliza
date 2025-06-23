@@ -174,9 +174,10 @@ export const sendMessageAction: Action = {
     // Get source types from room components
     const availableSources = new Set(roomComponents.map((c) => c.type));
 
-    // TODO: Add ability for plugins to register their sources
-    // const registeredSources = runtime.getRegisteredSources?.() || [];
-    // availableSources.add(...registeredSources);
+    const registeredSources = runtime.getRegisteredMessageSources?.() || [];
+    for (const src of registeredSources) {
+      availableSources.add(src);
+    }
 
     return availableSources.size > 0;
   },
@@ -234,6 +235,15 @@ export const sendMessageAction: Action = {
       }
 
       const source = targetData.source.toLowerCase();
+      const registeredSources = runtime.getRegisteredMessageSources?.() || [];
+      if (!registeredSources.includes(source)) {
+        await callback({
+          text: `I don't know how to send messages on ${source}.`,
+          actions: ['SEND_MESSAGE_ERROR'],
+          source: message.content.source,
+        });
+        return;
+      }
 
       if (targetData.targetType === 'user') {
         // Try to find the target user entity

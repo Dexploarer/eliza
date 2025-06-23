@@ -59,6 +59,12 @@ export interface Plugin {
 
   dependencies?: string[];
 
+  /**
+   * Optional list of messaging source identifiers this plugin supports.
+   * These will be registered with the runtime when the plugin is loaded.
+   */
+  messageSources?: string[];
+
   testDependencies?: string[];
 
   priority?: number;

@@ -167,4 +167,16 @@ export interface IAgentRuntime extends IDatabaseAdapter {
   registerSendHandler(source: string, handler: SendHandlerFunction): void;
 
   sendMessageToTarget(target: TargetInfo, content: Content): Promise<void>;
+
+  /**
+   * Register a messaging source so actions can route messages correctly.
+   * @param source - Unique identifier for the source/platform (e.g. 'discord')
+   */
+  registerMessageSource(source: string): void;
+
+  /**
+   * Get all registered message sources.
+   * @returns Array of registered source strings
+   */
+  getRegisteredMessageSources(): string[];
 }

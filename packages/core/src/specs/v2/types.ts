@@ -690,6 +690,11 @@ export interface Plugin {
 
   dependencies?: string[]; // Names of plugins this plugin depends on
 
+  /**
+   * Optional list of messaging source identifiers this plugin provides.
+   */
+  messageSources?: string[];
+
   priority?: number;
 }
 
@@ -1295,6 +1300,17 @@ export interface IAgentRuntime extends IDatabaseAdapter {
    * @returns Promise resolving when the message sending process is initiated or completed.
    */
   sendMessageToTarget(target: TargetInfo, content: Content): Promise<void>;
+
+  /**
+   * Register a messaging source for actions like sendMessage.
+   * @param source - Unique identifier for the source/platform
+   */
+  registerMessageSource(source: string): void;
+
+  /**
+   * Retrieve all registered messaging sources.
+   */
+  getRegisteredMessageSources(): string[];
 }
 
 /**

@@ -599,5 +599,14 @@ describe('AgentRuntime (Non-Instrumented Baseline)', () => {
         expect(runtime.actions).toContain(action2);
       });
     });
+
+    describe('message source registration', () => {
+      it('should register and retrieve message sources', () => {
+        runtime.registerMessageSource('discord');
+        runtime.registerMessageSource('telegram');
+        const sources = runtime.getRegisteredMessageSources();
+        expect(sources).toEqual(expect.arrayContaining(['discord', 'telegram']));
+      });
+    });
   });
 }); // End of main describe block

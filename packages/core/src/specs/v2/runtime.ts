@@ -817,6 +817,14 @@ export class AgentRuntime implements IAgentRuntime {
     return this._runtime.sendMessageToTarget(target, content);
   }
 
+  registerMessageSource(source: string): void {
+    this._runtime.registerMessageSource(source);
+  }
+
+  getRegisteredMessageSources(): string[] {
+    return this._runtime.getRegisteredMessageSources();
+  }
+
   async getMemoriesByWorldId(params: {
     worldId: UUID;
     count?: number;

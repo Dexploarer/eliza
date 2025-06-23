@@ -51,6 +51,13 @@ export function createMockRuntime(overrides: Partial<MockRuntime> = {}): MockRun
     services: new Map(),
     events: new Map(),
     routes: [],
+    _sources: new Set<string>(),
+    registerMessageSource: mock().mockImplementation(function (this: any, src: string) {
+      this._sources.add(src);
+    }),
+    getRegisteredMessageSources: mock().mockImplementation(function (this: any) {
+      return Array.from(this._sources);
+    }),
 
     // Core methods
     registerPlugin: mock().mockResolvedValue(undefined),
@@ -384,6 +391,7 @@ export type MockRuntime = Partial<IAgentRuntime & IDatabaseAdapter> & {
   services: Map<string, Service>;
   events: Map<string, ((params: any) => Promise<void>)[]>;
   routes: Route[];
+  _sources: Set<string>;
 
   // Additional properties and methods commonly used in tests
   useModel: ReturnType<typeof mock>;
@@ -445,4 +453,7 @@ export type MockRuntime = Partial<IAgentRuntime & IDatabaseAdapter> & {
 
   // Added for recentMessages provider
   getMemoriesByRoomIds: ReturnType<typeof mock>;
+
+  registerMessageSource: ReturnType<typeof mock>;
+  getRegisteredMessageSources: ReturnType<typeof mock>;
 };
