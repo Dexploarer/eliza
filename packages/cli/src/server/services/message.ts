@@ -522,7 +522,7 @@ export class MessageBusService extends Service {
       const serverApiUrl = `${baseUrl}/api/messaging/submit`;
       const response = await fetch(serverApiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' /* TODO: Add Auth if needed */ },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify(payloadToServer),
       });
 
@@ -537,6 +537,25 @@ export class MessageBusService extends Service {
         error
       );
     }
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    const token = process.env.ELIZA_SERVER_AUTH_TOKEN;
+    if (token) {
+      const method = process.env.ELIZA_SERVER_AUTH_METHOD || 'apiKey';
+      if (method.toLowerCase() === 'bearer') {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        const headerName = process.env.ELIZA_SERVER_AUTH_HEADER || 'X-API-KEY';
+        headers[headerName] = token;
+      }
+    }
+
+    return headers;
   }
 
   getCentralMessageServerUrl(): string {
