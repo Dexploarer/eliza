@@ -323,6 +323,14 @@ export const apiClient = {
     formData.append('file', audioBlob, 'recording.wav');
     return fetcher({ url: `/audio/${agentId}/transcriptions`, method: 'POST', body: formData });
   },
+  sendAudioMessage: async (
+    agentId: string,
+    audioBlob: Blob
+  ): Promise<{ success: boolean; data: ServerMessage }> => {
+    const formData = new FormData();
+    formData.append('file', audioBlob, 'recording.wav');
+    return fetcher({ url: `/audio/${agentId}/audio-messages`, method: 'POST', body: formData });
+  },
   uploadAgentMedia: async (
     agentId: string,
     file: File

@@ -90,7 +90,7 @@ export function resolvePgliteDir(dir?: string, fallbackDir?: string): string {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const DEFAULT_SERVER_ID = '00000000-0000-0000-0000-000000000000' as UUID; // Single default server
+export const DEFAULT_SERVER_ID = '00000000-0000-0000-0000-000000000000' as UUID; // Single default server
 
 /**
  * Represents a function that acts as a server middleware.

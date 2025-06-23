@@ -1,5 +1,11 @@
 import type { IAgentRuntime, UUID } from '@elizaos/core';
-import { logger, ModelType, validateUuid } from '@elizaos/core';
+import {
+  logger,
+  ModelType,
+  validateUuid,
+  createUniqueUuid,
+  ChannelType,
+} from '@elizaos/core';
 import express from 'express';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -7,8 +13,14 @@ import path from 'node:path';
 import { cleanupUploadedFile } from '../shared/file-utils';
 import { sendError, sendSuccess } from '../shared/response-utils';
 import { agentAudioUpload, validateAudioFile } from '../shared/uploads';
-import { createFileSystemRateLimit, createUploadRateLimit } from '../shared/middleware';
+import {
+  createFileSystemRateLimit,
+  createUploadRateLimit,
+} from '../shared/middleware';
 import { MAX_FILE_SIZE, MAX_FILE_SIZE_DISPLAY } from '../shared/constants';
+import type { AgentServer } from '../../index';
+import { DEFAULT_SERVER_ID } from '../../index';
+import type { MessageServiceStructure as MessageService } from '../../types';
 import type fileUpload from 'express-fileupload';
 
 // Using express-fileupload file type
@@ -79,7 +91,10 @@ function getUploadedFile(req: AudioRequest): UploadedFile | null {
 /**
  * Audio processing functionality - upload and transcription
  */
-export function createAudioProcessingRouter(agents: Map<UUID, IAgentRuntime>): express.Router {
+export function createAudioProcessingRouter(
+  agents: Map<UUID, IAgentRuntime>,
+  serverInstance: AgentServer
+): express.Router {
   const router = express.Router();
 
   // Apply rate limiting to all audio processing routes
@@ -145,12 +160,43 @@ export function createAudioProcessingRouter(agents: Map<UUID, IAgentRuntime>): e
         }
 
         const audioBuffer = await fs.promises.readFile(securePath);
-        const transcription = await runtime.useModel(ModelType.TRANSCRIPTION, audioBuffer);
+        const transcription = await runtime.useModel(
+          ModelType.TRANSCRIPTION,
+          audioBuffer
+        );
 
-        // Placeholder: This part needs to be updated to align with message creation.
-        logger.info(`[AUDIO MESSAGE] Transcription for agent ${agentId}: ${transcription}`);
+        const userId = createUniqueUuid(runtime, 'audio-api-user');
+        const dmChannel = await serverInstance.findOrCreateDmChannel(
+          userId,
+          runtime.agentId,
+          DEFAULT_SERVER_ID
+        );
+
+        const createdRootMessage = await serverInstance.createMessage({
+          channelId: dmChannel.id,
+          authorId: userId,
+          content: transcription,
+          rawMessage: transcription,
+          sourceType: 'api_audio',
+          metadata: { mimeType: audioFile.mimetype },
+        });
+
+        const messageForBus: MessageService = {
+          id: createdRootMessage.id!,
+          channel_id: createdRootMessage.channelId,
+          server_id: dmChannel.messageServerId,
+          author_id: createdRootMessage.authorId,
+          content: createdRootMessage.content,
+          raw_message: createdRootMessage.rawMessage,
+          source_id: createdRootMessage.sourceId,
+          source_type: createdRootMessage.sourceType,
+          in_reply_to_message_id: createdRootMessage.inReplyToRootMessageId,
+          created_at: new Date(createdRootMessage.createdAt).getTime(),
+          metadata: createdRootMessage.metadata,
+        };
+
         cleanupUploadedFile(audioFile);
-        sendSuccess(res, { transcription, message: 'Audio transcribed, further processing TBD.' });
+        res.status(201).json({ success: true, data: messageForBus });
       } catch (error) {
         logger.error('[AUDIO MESSAGE] Error processing audio:', error);
         cleanupUploadedFile(audioFile);

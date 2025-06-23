@@ -50,7 +50,8 @@
     "tsx": "4.19.4",
     "typescript": "^5.5.4",
     "which": "^4.0.0",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "supertest": "^6.3.3"
   },
   "gitHead": "d5bd5c43bfebeb7ac02f9e029f924cb6cd5c2ec7",
   "dependencies": {
