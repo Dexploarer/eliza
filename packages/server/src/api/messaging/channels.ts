@@ -624,17 +624,18 @@ export function createChannelsRouter(
         // Get all participants
         const allParticipants = await serverInstance.getChannelParticipants(channelId);
 
-        // Filter for agents (this is a simplified approach - you might want to
-        // implement a more sophisticated way to distinguish agents from users)
-        // For now, we'll return all participants and let the client filter
-        // In a production system, you'd want to cross-reference with an agent registry
+        // Determine agent participants if registry is available
+        const agentParticipants =
+          agents && agents.size > 0
+            ? allParticipants.filter((id) => agents.has(id))
+            : allParticipants;
 
         res.json({
           success: true,
           data: {
             channelId,
-            participants: allParticipants, // All participants (agents and users)
-            // TODO: Add agent-specific filtering when agent registry is available
+            participants: allParticipants,
+            agents: agentParticipants,
           },
         });
       } catch (error) {
