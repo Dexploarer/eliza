@@ -8,17 +8,21 @@
  * The step is skippable — all features can be configured later from Settings.
  */
 
-import { Button } from "@elizaos/app-core";
 import {
   OnboardingSecondaryActionButton,
+  OnboardingStepHeader,
   onboardingFooterClass,
   onboardingPrimaryActionClass,
   onboardingPrimaryActionTextShadowStyle,
   spawnOnboardingRipple,
-} from "./onboarding-step-chrome";
+  onboardingHelperTextClassName,
+  onboardingReadableTextMutedClassName,
+  FeatureCard,
+  type FeatureStatus,
+} from "@milady/ui";
+import { Button, cn } from "@elizaos/app-core";
 import { useCallback, useMemo } from "react";
 import { useApp } from "../../state";
-import { FeatureCard, type FeatureStatus } from "./features/FeatureCard";
 
 const MONO_FONT = "'Courier New', 'Courier', 'Monaco', monospace";
 
@@ -154,29 +158,20 @@ export function FeaturesStep() {
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      <div>
-        <h2
-          style={{ fontFamily: MONO_FONT }}
-          className="text-base font-bold text-black"
-        >
-          {t("onboarding.features.title", {
-            defaultValue: "Enable features",
-          })}
-        </h2>
-        <p className="mt-1 text-xs text-black/60">
-          {t("onboarding.features.subtitle", {
-            defaultValue:
-              "Connect platforms and capabilities. You can always change these later in Settings.",
-          })}
-        </p>
-      </div>
+      <OnboardingStepHeader
+        eyebrow={t("onboarding.features.eyebrow", { defaultValue: "Features" })}
+        title={t("onboarding.features.title", { defaultValue: "Enable features" })}
+        description={t("onboarding.features.subtitle", {
+          defaultValue: "Connect platforms and capabilities. You can always change these later in Settings.",
+        })}
+      />
 
       {/* Feature grid */}
       <div className="flex flex-col gap-2">
         {hasCloud && (
           <p
             style={{ fontFamily: MONO_FONT }}
-            className="text-3xs uppercase text-black/50 mt-1"
+            className={cn("text-3xs uppercase mt-1", onboardingReadableTextMutedClassName)}
           >
             {t("onboarding.features.managedSection", {
               defaultValue: "Managed connectors",
@@ -204,7 +199,7 @@ export function FeaturesStep() {
 
         <p
           style={{ fontFamily: MONO_FONT }}
-          className="text-3xs uppercase text-black/50 mt-2"
+          className={cn("text-3xs uppercase mt-2", onboardingReadableTextMutedClassName)}
         >
           {t("onboarding.features.optionalSection", {
             defaultValue: "Optional capabilities",
