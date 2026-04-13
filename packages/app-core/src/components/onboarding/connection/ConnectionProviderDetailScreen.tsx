@@ -859,6 +859,11 @@ export function ConnectionProviderDetailScreen({
               >
                 {t("onboarding.loginWithOpenAI")}
               </Button>
+              {openaiError && (
+                <OnboardingStatusBanner tone="danger">
+                  {openaiError}
+                </OnboardingStatusBanner>
+              )}
               <div className={`${onboardingHelperTextClassName} text-center`}>
                 {t("onboarding.requiresChatGPTSub")}
               </div>
