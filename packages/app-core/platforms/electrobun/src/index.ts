@@ -578,7 +578,6 @@ function loadWindowState(statePath: string): PersistedWindowState {
     ...DEFAULT_WINDOW_STATE,
     shouldMaximize: MAXIMIZE_ON_LAUNCH_SENTINEL,
   };
-  };
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
