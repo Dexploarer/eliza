@@ -121,6 +121,10 @@ export function getEffectiveServerTarget(
   if (snapshot.forceCloud && snapshot.onboardingServerTarget === "") {
     return "local";
   }
+  // Desktop/native → assume local, skip hosting choice screen entirely.
+  if (snapshot.isNative && snapshot.onboardingServerTarget === "") {
+    return "local";
+  }
   return snapshot.onboardingServerTarget;
 }
 
@@ -186,8 +190,8 @@ const resetCloudSelectionPatch = (): ConnectionStatePatch => ({
 
 const resetHostingSelectionPatch = (): ConnectionStatePatch => ({
   ...resetCloudSelectionPatch(),
-  onboardingSubscriptionTab: "",
-  onboardingElizaCloudTab: "",
+  onboardingSubscriptionTab: "token",
+  onboardingElizaCloudTab: "login",
 });
 
 /**

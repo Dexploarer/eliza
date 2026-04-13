@@ -1,6 +1,7 @@
 import { Button } from "@elizaos/app-core";
 import type { ProviderOption } from "../../../api";
 import { appNameInterpolationVars, useBranding } from "../../../config";
+import { isNative } from "../../../platform";
 import type {
   ConnectionEffect,
   ConnectionEvent,
@@ -49,7 +50,7 @@ export function ConnectionProviderGridScreen({
   getDetectedLabel: (providerId: string) => string | null;
 }) {
   const branding = useBranding();
-  const { t, onboardingRemoteConnected, handleOnboardingNext } = useApp();
+  const { t, onboardingRemoteConnected, handleOnboardingBack, handleOnboardingNext } = useApp();
 
   return (
     <>
@@ -130,6 +131,11 @@ export function ConnectionProviderGridScreen({
           onClick={() => {
             if (onboardingRemoteConnected) {
               onTransitionEffect("useLocalBackend");
+              return;
+            }
+            // Desktop skips the hosting screen, so back goes to deployment step.
+            if (isNative) {
+              handleOnboardingBack();
               return;
             }
             dispatch({ type: "backRemoteOrGrid" });
