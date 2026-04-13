@@ -342,12 +342,14 @@ export function ConnectionStep() {
   };
 
   return (
-    <ConnectionUiRoot
-      spec={spec}
-      shared={shared}
-      providerDetail={
-        <ConnectionProviderDetailScreen dispatch={dispatchConnection} />
-      }
-    />
+    <div className="relative h-full w-full">
+      <ConnectionUiRoot
+        spec={spec}
+        shared={shared}
+        providerDetail={
+          <ConnectionProviderDetailScreen dispatch={dispatchConnection} />
+        }
+      />
+    </div>
   );
 }
