@@ -31,6 +31,9 @@ export function createElectrobunConfig(): ElectrobunConfig {
     ).trim() || "";
   const runtimeDistDir =
     (process.env.ELIZA_RUNTIME_DIST_DIR ?? "").trim() || "eliza-dist";
+  // Note: All paths relative to electrobun.config.ts location
+  // (eliza/packages/app-core/platforms/electrobun/)
+  // ../../../../../ goes to milady repo root where dist/, plugins.json, package.json exist
 
   return {
     app: {
@@ -72,9 +75,9 @@ export function createElectrobunConfig(): ElectrobunConfig {
       copy: {
         "../../../../../apps/app/dist": "renderer",
         "src/preload.js": "bun/preload.js",
-        "../../../dist": runtimeDistDir,
-        "../../../plugins.json": `${runtimeDistDir}/plugins.json`,
-        "../../../package.json": `${runtimeDistDir}/package.json`,
+        "../../../../../dist": runtimeDistDir,
+        "../../../../../plugins.json": `${runtimeDistDir}/plugins.json`,
+        "../../../../../package.json": `${runtimeDistDir}/package.json`,
         "assets/appIcon.png": "assets/appIcon.png",
         "assets/appIcon.ico": "assets/appIcon.ico",
         ...(process.platform === "darwin" &&
