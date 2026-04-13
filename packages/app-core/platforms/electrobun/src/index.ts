@@ -477,7 +477,8 @@ function applyMacOSWindowEffects(win: BrowserWindow): void {
     return;
   }
 
-  enableVibrancy(ptr as Parameters<typeof enableVibrancy>[0]);
+  // Vibrancy disabled — solid window background for readability.
+  // enableVibrancy(ptr as Parameters<typeof enableVibrancy>[0]);
   ensureShadow(ptr as Parameters<typeof ensureShadow>[0]);
 
   const alignButtons = () =>
@@ -533,10 +534,10 @@ interface WindowState {
  * systems where maximize() hasn't registered yet.
  */
 const DEFAULT_WINDOW_STATE: WindowState = {
-  x: 60,
-  y: 60,
+  x: 40,
+  y: 40,
   width: 1440,
-  height: 900,
+  height: 960,
 };
 
 /**
@@ -571,12 +572,11 @@ function loadWindowState(statePath: string): PersistedWindowState {
       }
     }
   } catch {}
-  // No saved state → first launch. Open maximized so the user gets a
-  // usable workspace immediately instead of a small window in the
-  // corner they have to resize themselves.
+  // No saved state → first launch. Use the default size (large but not
+  // maximized) so the window can be dragged, resized, and arranged freely.
   return {
     ...DEFAULT_WINDOW_STATE,
-    shouldMaximize: MAXIMIZE_ON_LAUNCH_SENTINEL,
+  };
   };
 }
 
@@ -861,7 +861,7 @@ async function createMainWindow(): Promise<BrowserWindow> {
   };
   const titleBarStyle =
     process.platform === "darwin" ? "hiddenInset" : "default";
-  const transparent = process.platform === "darwin";
+  const transparent = false;
   const buildInfo = await BuildConfig.get();
   const forceMainWindowCef = shouldForceMainWindowCef(process.env);
   const canUseCefView = buildInfo.availableRenderers.includes("cef");
