@@ -29,7 +29,7 @@ import {
   client,
 } from "../../api";
 import { useApp } from "../../state";
-import { openExternalUrl, preOpenWindow } from "../../utils";
+import { openExternalUrl } from "../../utils";
 import { StripeEmbeddedCheckout } from "../cloud/StripeEmbeddedCheckout";
 import { AgentDetailSidebar, CloudAgentCard } from "./cloud-dashboard-panels";
 import {
@@ -965,7 +965,7 @@ export function CloudDashboard() {
           variant="default"
           size="sm"
           className="rounded-xl px-8 py-3 text-sm font-semibold shadow-md shadow-accent/15 hover:shadow-accent/30 hover:-translate-y-0.5 transition-all duration-300"
-          onClick={() => { const p = preOpenWindow(); void handleCloudLogin(p); }}
+          onClick={() => { void handleCloudLogin(); }}
           disabled={elizaCloudLoginBusy}
         >
           {elizaCloudLoginBusy ? (

@@ -269,10 +269,10 @@ export function useCloudState({
     return isConnected;
   }, []);
 
-  const handleCloudLogin = useCallback(async (preOpened?: Window | null) => {
+  const handleCloudLogin = useCallback(async () => {
     // Already connected (existing API key) — no need to re-authenticate.
-    if (elizaCloudConnected) { preOpened?.close(); return; }
-    if (elizaCloudLoginBusyRef.current || elizaCloudLoginBusy) { preOpened?.close(); return; }
+    if (elizaCloudConnected) return;
+    if (elizaCloudLoginBusyRef.current || elizaCloudLoginBusy) return;
     elizaCloudLoginBusyRef.current = true;
     setElizaCloudLoginBusy(true);
     setElizaCloudLoginError(null);
@@ -303,31 +303,19 @@ export function useCloudState({
         );
         elizaCloudLoginBusyRef.current = false;
         setElizaCloudLoginBusy(false);
-        preOpened?.close();
         return;
       }
 
-      // Open the login URL in a browser window.
+      // Open the login URL in the system browser.
       if (resp.browserUrl) {
-        let opened = false;
-        if (preOpened && !preOpened.closed) {
-          try {
-            preOpened.location.href = resp.browserUrl;
-            opened = true;
-          } catch { /* cross-origin or blocked */ }
-        }
-        if (!opened) {
-          const w = window.open(resp.browserUrl, "_blank");
-          opened = Boolean(w);
-        }
-        if (!opened) {
+        try {
+          await openExternalUrl(resp.browserUrl);
+        } catch {
           // Popup was blocked — show a clickable link so the user can open it.
           setElizaCloudLoginError(
             `Open this link to log in: ${resp.browserUrl}`,
           );
         }
-      } else {
-        preOpened?.close();
       }
 
       const sessionId = resp.sessionId ?? "";

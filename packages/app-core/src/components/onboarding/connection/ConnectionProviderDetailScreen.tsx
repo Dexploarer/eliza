@@ -27,7 +27,7 @@ import {
   formatSubscriptionRequestError,
   normalizeOpenAICallbackInput,
 } from "../../../utils/subscription-auth";
-import { openExternalUrl, preOpenWindow } from "../../../utils";
+import { openExternalUrl } from "../../../utils";
 import { OnboardingTabs } from "../OnboardingTabs";
 import {
   getOnboardingChoiceCardClassName,
@@ -273,21 +273,10 @@ export function ConnectionProviderDetailScreen({
 
   const handleAnthropicStart = async () => {
     setAnthropicError("");
-    const popup = preOpenWindow();
     try {
       const { authUrl } = await client.startAnthropicLogin();
       if (authUrl) {
-        let opened = false;
-        if (popup && !popup.closed) {
-          try { popup.location.href = authUrl; opened = true; } catch { /* blocked */ }
-        }
-        if (!opened) {
-          const w = window.open(authUrl, "_blank");
-          opened = Boolean(w);
-        }
-        if (!opened) {
-          setAnthropicError(`Open this link to log in: ${authUrl}`);
-        }
+        await openExternalUrl(authUrl);
         // Always transition to the code-paste screen — even if the popup was
         // blocked the URL is logged to console and the user can open it manually.
         setAnthropicOAuthStarted(true);
@@ -298,7 +287,6 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to get auth URL",
         }),
       );
-      popup?.close();
     } catch (err) {
       setAnthropicError(
         t("onboarding.failedToStartLogin", {
@@ -306,7 +294,6 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to start login: {{message}}",
         }),
       );
-      popup?.close();
     }
   };
 
@@ -372,21 +359,10 @@ export function ConnectionProviderDetailScreen({
   };
 
   const handleOpenAIStart = async () => {
-    const popup = preOpenWindow();
     try {
       const { authUrl } = await client.startOpenAILogin();
       if (authUrl) {
-        let opened = false;
-        if (popup && !popup.closed) {
-          try { popup.location.href = authUrl; opened = true; } catch { /* blocked */ }
-        }
-        if (!opened) {
-          const w = window.open(authUrl, "_blank");
-          opened = Boolean(w);
-        }
-        if (!opened) {
-          setOpenaiError(`Open this link to log in: ${authUrl}`);
-        }
+        await openExternalUrl(authUrl);
         setOpenaiOAuthStarted(true);
         return;
       }
@@ -395,7 +371,6 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "No auth URL returned from login",
         }),
       );
-      popup?.close();
     } catch (err) {
       setOpenaiError(
         t("onboarding.failedToStartLogin", {
@@ -403,7 +378,6 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to start login: {{message}}",
         }),
       );
-      popup?.close();
     }
   };
 
@@ -604,10 +578,7 @@ export function ConnectionProviderDetailScreen({
                       x: e.clientX,
                       y: e.clientY,
                     });
-                    // Pre-open window in the synchronous click handler to
-                    // preserve user-gesture context for popup blockers.
-                    const popup = preOpenWindow();
-                    void handleCloudLogin(popup);
+                    void handleCloudLogin();
                   }}
                   disabled={elizaCloudLoginBusy}
                 >
