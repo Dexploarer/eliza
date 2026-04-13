@@ -178,6 +178,8 @@ const resetCloudSelectionPatch = (): ConnectionStatePatch => ({
   ...toOnboardingTargetPatch(""),
   onboardingCloudApiKey: "",
   onboardingApiKey: "",
+  onboardingPrimaryModel: "",  // Also clear model when resetting cloud selection
+  onboardingProvider: "",      // Clear provider when backing out of provider selection
   onboardingRemoteError: null,
   onboardingRemoteConnecting: false,
 });
