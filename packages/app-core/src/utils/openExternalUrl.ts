@@ -50,8 +50,9 @@ export async function openExternalUrl(url: string): Promise<void> {
 export function preOpenWindow(): Window | null {
   if (getElectrobunRendererRpc() !== undefined) return null; // Desktop uses RPC
   if (typeof window === "undefined" || typeof window.open !== "function") return null;
-  // No `noopener` — it makes window.open return null. We null out opener after navigating.
-  return window.open("about:blank", "_blank", "noreferrer");
+  // Open a blank window synchronously (preserves user-gesture context).
+  // No noopener (nullifies return value) or noreferrer (can make about:blank cross-origin).
+  return window.open("about:blank", "_blank");
 }
 
 /**
