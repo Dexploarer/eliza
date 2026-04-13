@@ -1,7 +1,7 @@
 import { Button } from "@elizaos/app-core";
 import type { ProviderOption } from "../../../api";
 import { appNameInterpolationVars, useBranding } from "../../../config";
-import { isNative } from "../../../platform";
+import { canRunLocal } from "../../../platform/init";
 import type {
   ConnectionEffect,
   ConnectionEvent,
@@ -70,8 +70,8 @@ export function ConnectionProviderGridScreen({
         </p>
       )}
 
-      {/* Desktop override: compact Cloud / Remote options */}
-      {isNative && (
+      {/* Override: compact Cloud / Remote options when local is the default */}
+      {canRunLocal() && (
         <div className="mb-3 flex items-center justify-center gap-3">
           <button
             type="button"
@@ -155,8 +155,8 @@ export function ConnectionProviderGridScreen({
               onTransitionEffect("useLocalBackend");
               return;
             }
-            // Desktop skips the hosting screen, so back goes to deployment step.
-            if (isNative) {
+            // Local-default skips the hosting screen, so back goes to previous wizard step.
+            if (canRunLocal()) {
               handleOnboardingBack();
               return;
             }

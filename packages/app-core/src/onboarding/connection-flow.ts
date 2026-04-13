@@ -35,6 +35,7 @@ import type {
   ConnectionUiSpec,
 } from "./types";
 import { type OnboardingServerTarget } from "./server-target";
+import { canRunLocal } from "../platform/init";
 
 export type {
   ConnectionEffect,
@@ -121,8 +122,8 @@ export function getEffectiveServerTarget(
   if (snapshot.forceCloud && snapshot.onboardingServerTarget === "") {
     return "local";
   }
-  // Desktop/native → assume local, skip hosting choice screen entirely.
-  if (snapshot.isNative && snapshot.onboardingServerTarget === "") {
+  // Desktop or dev server → assume local, skip hosting choice screen entirely.
+  if (canRunLocal() && snapshot.onboardingServerTarget === "") {
     return "local";
   }
   return snapshot.onboardingServerTarget;

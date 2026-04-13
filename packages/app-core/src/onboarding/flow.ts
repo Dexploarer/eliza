@@ -22,6 +22,7 @@ import type {
 } from "../state/types";
 import { ONBOARDING_STEPS } from "../state/types";
 import { isElectrobunRuntime } from "../bridge";
+import { canRunLocal } from "../platform/init";
 
 /** Linear step ids for the unified onboarding flow. */
 export function getStepOrder(): OnboardingStep[] {
@@ -75,13 +76,13 @@ export function canRevertOnboardingTo(params: {
 
 /**
  * Rows shown in OnboardingStepNav.
- * Desktop and cloud-provisioned containers skip the deployment step.
+ * Desktop, dev mode, and cloud-provisioned containers skip the deployment step.
  */
 export function getOnboardingNavMetas(
   _currentStep: OnboardingStep,
   cloudOnly: boolean,
 ): OnboardingStepMeta[] {
-  if (cloudOnly || isElectrobunRuntime()) {
+  if (cloudOnly || canRunLocal()) {
     return ONBOARDING_STEPS.filter((s) => s.id !== "deployment");
   }
   return [...ONBOARDING_STEPS];
