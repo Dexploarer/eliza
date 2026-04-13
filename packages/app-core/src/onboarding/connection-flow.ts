@@ -184,6 +184,8 @@ const resetCloudSelectionPatch = (): ConnectionStatePatch => ({
 
 const resetHostingSelectionPatch = (): ConnectionStatePatch => ({
   ...resetCloudSelectionPatch(),
+  onboardingSubscriptionTab: "",
+  onboardingElizaCloudTab: "",
 });
 
 /**
