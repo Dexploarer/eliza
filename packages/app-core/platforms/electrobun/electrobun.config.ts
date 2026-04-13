@@ -70,7 +70,7 @@ export function createElectrobunConfig(): ElectrobunConfig {
       // 2. Electrobun-native Dawn for Bun-side GpuWindow / <electrobun-wgpu>
       //    surfaces and future native compute workloads.
       copy: {
-        "../dist": "renderer",
+        "../../../../../apps/app/dist": "renderer",
         "src/preload.js": "bun/preload.js",
         "../../../dist": runtimeDistDir,
         "../../../plugins.json": `${runtimeDistDir}/plugins.json`,
