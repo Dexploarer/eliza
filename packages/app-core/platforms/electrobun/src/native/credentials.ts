@@ -1,6 +1,8 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { Database } from "bun:sqlite";
 
 export interface DetectedProvider {
   id: string;
@@ -314,6 +316,189 @@ async function scanGeminiCredentials(
   return null;
 }
 
+// ── Browser cookie extraction (Chrome/Chromium on macOS) ──────────────────
+
+interface ChromiumBrowserDef {
+  name: string;
+  cookiePath: string;
+  keychainService: string;
+}
+
+const CHROMIUM_BROWSERS: ChromiumBrowserDef[] = [
+  {
+    name: "Chrome",
+    cookiePath: "Google/Chrome/Default/Cookies",
+    keychainService: "Chrome Safe Storage",
+  },
+  {
+    name: "Arc",
+    cookiePath: "Arc/User Data/Default/Cookies",
+    keychainService: "Arc Safe Storage",
+  },
+  {
+    name: "Brave",
+    cookiePath: "BraveSoftware/Brave-Browser/Default/Cookies",
+    keychainService: "Brave Safe Storage",
+  },
+  {
+    name: "Edge",
+    cookiePath: "Microsoft Edge/Default/Cookies",
+    keychainService: "Microsoft Edge Safe Storage",
+  },
+  {
+    name: "Chromium",
+    cookiePath: "Chromium/Default/Cookies",
+    keychainService: "Chromium Safe Storage",
+  },
+];
+
+function deriveChromiumCookieKey(password: string): Buffer {
+  // Chrome on macOS: PBKDF2 with salt='saltysalt', 1003 iterations, 16-byte key
+  return crypto.pbkdf2Sync(password, "saltysalt", 1003, 16, "sha1");
+}
+
+function decryptChromiumCookieValue(encrypted: Buffer, key: Buffer): string | null {
+  // Chrome encrypted cookies start with 'v10' (3 bytes) then AES-128-CBC with 16 zero-byte IV
+  if (encrypted.length < 4) return null;
+  const version = encrypted.subarray(0, 3).toString("ascii");
+  if (version !== "v10") return null;
+
+  const ciphertext = encrypted.subarray(3);
+  try {
+    const iv = Buffer.alloc(16, 0);
+    const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
+    decipher.setAutoPadding(true);
+    const decrypted = Buffer.concat([
+      decipher.update(ciphertext),
+      decipher.final(),
+    ]);
+    return decrypted.toString("utf8");
+  } catch {
+    return null;
+  }
+}
+
+interface BrowserCookieResult {
+  name: string;
+  value: string;
+  browser: string;
+  expiresUtc: number;
+}
+
+/**
+ * Read specific cookies from Chromium-based browsers on macOS.
+ * Decrypts using the Safe Storage key from Keychain.
+ * Falls back through installed browsers until one succeeds.
+ */
+export async function readChromiumCookies(
+  host: string,
+  cookieNames: string[],
+): Promise<BrowserCookieResult[]> {
+  if (process.platform !== "darwin") return [];
+
+  const appSupport = path.join(os.homedir(), "Library", "Application Support");
+
+  for (const browser of CHROMIUM_BROWSERS) {
+    const dbPath = path.join(appSupport, browser.cookiePath);
+    if (!fs.existsSync(dbPath)) continue;
+
+    // Get the decryption key from Keychain
+    const password = await readKeychainCredential(browser.keychainService);
+    if (!password) continue;
+
+    const key = deriveChromiumCookieKey(password);
+
+    try {
+      // Copy the DB to a temp file to avoid locking issues with the running browser
+      const tmpDb = path.join(os.tmpdir(), `milady-cookies-${browser.name}-${Date.now()}.db`);
+      fs.copyFileSync(dbPath, tmpDb);
+
+      const db = new Database(tmpDb, { readonly: true });
+      const nameParams = cookieNames.map(() => "?").join(", ");
+      const rows = db
+        .query(
+          `SELECT name, encrypted_value, expires_utc FROM cookies WHERE host_key = ? AND name IN (${nameParams})`,
+        )
+        .all(host, ...cookieNames) as Array<{
+        name: string;
+        encrypted_value: Buffer;
+        expires_utc: number;
+      }>;
+      db.close();
+
+      // Clean up temp file
+      try { fs.unlinkSync(tmpDb); } catch { /* best effort */ }
+
+      const results: BrowserCookieResult[] = [];
+      for (const row of rows) {
+        const value = decryptChromiumCookieValue(
+          Buffer.from(row.encrypted_value),
+          key,
+        );
+        if (value) {
+          results.push({
+            name: row.name,
+            value,
+            browser: browser.name,
+            expiresUtc: row.expires_utc,
+          });
+        }
+      }
+
+      if (results.length > 0) return results;
+    } catch (err) {
+      console.warn(`[credentials] Failed to read ${browser.name} cookies:`, err);
+    }
+  }
+
+  return [];
+}
+
+// ── Eliza Cloud (browser cookie auto-import) ─────────────────────────
+
+interface PrivyTokenPayload {
+  sub?: string;
+  aud?: string;
+  exp?: number;
+  iat?: number;
+  sid?: string;
+}
+
+function decodeJwtPayload(jwt: string): PrivyTokenPayload | null {
+  try {
+    const parts = jwt.split(".");
+    if (parts.length !== 3) return null;
+    const payload = Buffer.from(parts[1], "base64url").toString("utf8");
+    return JSON.parse(payload) as PrivyTokenPayload;
+  } catch {
+    return null;
+  }
+}
+
+async function scanElizaCloudBrowserSession(): Promise<DetectedProvider | null> {
+  // Check if user has an active elizacloud.ai session in their browser.
+  // The privy-token JWT is in-memory only (not persisted to SQLite),
+  // but privy-session indicates an active browser session exists.
+  const cookies = await readChromiumCookies("www.elizacloud.ai", [
+    "privy-session",
+  ]);
+
+  const hasSession = cookies.some((c) => c.name === "privy-session");
+  if (!hasSession) return null;
+
+  // The user is logged into elizacloud.ai in their browser.
+  // The "Deploy to Cloud" flow will open the browser and complete
+  // auth instantly since they already have a session (no re-login).
+  return {
+    id: "elizacloud",
+    source: "browser-session",
+    authMode: "oauth",
+    cliInstalled: false,
+    status: "unchecked",
+    statusDetail: "Logged in via browser",
+  };
+}
+
 /**
  * Environment variable → provider ID mapping for all Eliza AI providers.
  * Each entry maps an env var name to its provider plugin ID.
@@ -455,6 +640,12 @@ async function scanProviderCredentialsRaw(): Promise<DetectedProvider[]> {
   if (!detected.has("cursor")) {
     const cursorResult = await scanCursorCredentials();
     if (cursorResult) detected.set(cursorResult.id, cursorResult);
+  }
+
+  // Browser cookies (Eliza Cloud session import)
+  if (!detected.has("elizacloud")) {
+    const cloudSession = await scanElizaCloudBrowserSession();
+    if (cloudSession) detected.set(cloudSession.id, cloudSession);
   }
 
   // Environment variables (lowest priority — only fills gaps)
