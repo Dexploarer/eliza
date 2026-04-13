@@ -27,6 +27,7 @@ import {
   gatewayEndpointToApiBase,
 } from "../../bridge/gateway-discovery";
 import { isDesktopPlatform } from "../../platform/init";
+import { preOpenWindow } from "../../utils/openExternalUrl";
 import {
   addAgentProfile,
   clearPersistedActiveServer,
@@ -212,7 +213,8 @@ export function DeploymentStep() {
 
   const handleLogin = useCallback(async () => {
     setError(null);
-    await handleCloudLogin();
+    const popup = preOpenWindow();
+    await handleCloudLogin(popup);
   }, [handleCloudLogin]);
 
   const connectToAgent = useCallback(

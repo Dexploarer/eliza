@@ -271,17 +271,18 @@ export function useCloudState({
     return isConnected;
   }, []);
 
-  const handleCloudLogin = useCallback(async () => {
+  const handleCloudLogin = useCallback(async (preOpened?: Window | null) => {
     // Already connected (existing API key) — no need to re-authenticate.
-    if (elizaCloudConnected) return;
-    if (elizaCloudLoginBusyRef.current || elizaCloudLoginBusy) return;
+    if (elizaCloudConnected) { preOpened?.close(); return; }
+    if (elizaCloudLoginBusyRef.current || elizaCloudLoginBusy) { preOpened?.close(); return; }
     elizaCloudLoginBusyRef.current = true;
     setElizaCloudLoginBusy(true);
     setElizaCloudLoginError(null);
     elizaCloudPreferDisconnectedUntilLoginRef.current = false;
 
-    // Pre-open a window synchronously so the popup blocker doesn't kill it.
-    const popup = preOpenWindow();
+    // Use the caller's pre-opened window (opened synchronously in the click
+    // handler to avoid popup blockers) or fall back to opening one here.
+    const popup = preOpened ?? preOpenWindow();
 
     // Determine if we should use direct cloud auth (no local backend) or
     // go through the local agent's proxy.

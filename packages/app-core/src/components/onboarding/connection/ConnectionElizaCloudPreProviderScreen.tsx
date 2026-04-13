@@ -3,7 +3,7 @@ import type { ChangeEvent } from "react";
 import { useBranding } from "../../../config";
 import type { ConnectionEvent } from "../../../onboarding/connection-flow";
 import { useApp } from "../../../state";
-import { openExternalUrl } from "../../../utils";
+import { openExternalUrl, preOpenWindow } from "../../../utils";
 import { OnboardingTabs } from "../OnboardingTabs";
 import {
   OnboardingField,
@@ -100,7 +100,8 @@ export function ConnectionElizaCloudPreProviderScreen({
                     x: e.clientX,
                     y: e.clientY,
                   });
-                  handleCloudLogin();
+                  const popup = preOpenWindow();
+                  handleCloudLogin(popup);
                 }}
                 disabled={elizaCloudLoginBusy}
               >

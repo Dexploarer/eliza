@@ -584,7 +584,10 @@ export function ConnectionProviderDetailScreen({
                       x: e.clientX,
                       y: e.clientY,
                     });
-                    void handleCloudLogin();
+                    // Pre-open window in the synchronous click handler to
+                    // preserve user-gesture context for popup blockers.
+                    const popup = preOpenWindow();
+                    void handleCloudLogin(popup);
                   }}
                   disabled={elizaCloudLoginBusy}
                 >

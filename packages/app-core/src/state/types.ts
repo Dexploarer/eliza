@@ -836,7 +836,7 @@ export interface AppActions {
   handleOnboardingUseLocalBackend: () => void;
 
   // Cloud
-  handleCloudLogin: () => Promise<void>;
+  handleCloudLogin: (preOpened?: Window | null) => Promise<void>;
   handleCloudDisconnect: () => Promise<void>;
 
   // Multi-agent

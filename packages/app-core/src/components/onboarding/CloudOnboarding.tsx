@@ -1,7 +1,7 @@
 import { Button } from "@elizaos/app-core";
 import { useEffect } from "react";
 import { useApp } from "../../state";
-import { openExternalUrl } from "../../utils";
+import { openExternalUrl, preOpenWindow } from "../../utils";
 
 /**
  * Minimal onboarding screen for Eliza Home.
@@ -55,7 +55,7 @@ export function CloudOnboarding() {
               <Button
                 variant="default"
                 className="w-full py-3 px-4 rounded-lg bg-accent text-accent-fg font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-                onClick={handleCloudLogin}
+                onClick={() => { const p = preOpenWindow(); void handleCloudLogin(p); }}
                 disabled={elizaCloudLoginBusy}
               >
                 {elizaCloudLoginBusy
