@@ -28,6 +28,8 @@ import { dispatchElizaCloudStatusUpdated } from "../events";
 import {
   confirmDesktopAction,
   openExternalUrl,
+  preOpenWindow,
+  navigatePreOpenedWindow,
   yieldHttpAfterNativeMessageBox,
 } from "../utils";
 
@@ -278,9 +280,11 @@ export function useCloudState({
     setElizaCloudLoginError(null);
     elizaCloudPreferDisconnectedUntilLoginRef.current = false;
 
+    // Pre-open a window synchronously so the popup blocker doesn't kill it.
+    const popup = preOpenWindow();
+
     // Determine if we should use direct cloud auth (no local backend) or
-    // go through the local agent's proxy. During sandbox onboarding there is
-    // no local backend, so we talk to Eliza Cloud directly.
+    // go through the local agent's proxy.
     const hasBackend = Boolean(client.getBaseUrl());
     const cloudApiBase =
       getBootConfig().cloudApiBase ?? "https://www.elizacloud.ai";
@@ -304,22 +308,15 @@ export function useCloudState({
         );
         elizaCloudLoginBusyRef.current = false;
         setElizaCloudLoginBusy(false);
+        popup?.close();
         return;
       }
 
-      // Try to open the login URL in the system browser (uses desktop bridge
-      // in Electrobun, falls back to window.open in web contexts).
+      // Navigate the pre-opened window to the login URL.
       if (resp.browserUrl) {
-        try {
-          await openExternalUrl(resp.browserUrl);
-        } catch {
-          // Popup was blocked (common when window.open runs after an async
-          // gap and loses user-gesture context). Surface the URL so the user
-          // can open it manually — the polling loop below still runs.
-          setElizaCloudLoginError(
-            `Open this link to log in: ${resp.browserUrl}`,
-          );
-        }
+        navigatePreOpenedWindow(popup, resp.browserUrl);
+      } else {
+        popup?.close();
       }
 
       const sessionId = resp.sessionId ?? "";

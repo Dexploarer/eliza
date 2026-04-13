@@ -27,7 +27,7 @@ import {
   formatSubscriptionRequestError,
   normalizeOpenAICallbackInput,
 } from "../../../utils/subscription-auth";
-import { openExternalUrl } from "../../../utils";
+import { openExternalUrl, preOpenWindow, navigatePreOpenedWindow } from "../../../utils";
 import { OnboardingTabs } from "../OnboardingTabs";
 import {
   getOnboardingChoiceCardClassName,
@@ -273,10 +273,11 @@ export function ConnectionProviderDetailScreen({
 
   const handleAnthropicStart = async () => {
     setAnthropicError("");
+    const popup = preOpenWindow();
     try {
       const { authUrl } = await client.startAnthropicLogin();
       if (authUrl) {
-        await openExternalUrl(authUrl);
+        navigatePreOpenedWindow(popup, authUrl);
         // Always transition to the code-paste screen — even if the popup was
         // blocked the URL is logged to console and the user can open it manually.
         setAnthropicOAuthStarted(true);
@@ -287,6 +288,7 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to get auth URL",
         }),
       );
+      popup?.close();
     } catch (err) {
       setAnthropicError(
         t("onboarding.failedToStartLogin", {
@@ -294,6 +296,7 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to start login: {{message}}",
         }),
       );
+      popup?.close();
     }
   };
 
@@ -359,10 +362,11 @@ export function ConnectionProviderDetailScreen({
   };
 
   const handleOpenAIStart = async () => {
+    const popup = preOpenWindow();
     try {
       const { authUrl } = await client.startOpenAILogin();
       if (authUrl) {
-        await openExternalUrl(authUrl);
+        navigatePreOpenedWindow(popup, authUrl);
         setOpenaiOAuthStarted(true);
         return;
       }
@@ -371,6 +375,7 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "No auth URL returned from login",
         }),
       );
+      popup?.close();
     } catch (err) {
       setOpenaiError(
         t("onboarding.failedToStartLogin", {
@@ -378,6 +383,7 @@ export function ConnectionProviderDetailScreen({
           defaultValue: "Failed to start login: {{message}}",
         }),
       );
+      popup?.close();
     }
   };
 

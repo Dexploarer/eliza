@@ -78,7 +78,7 @@ export function ConnectionProviderGridScreen({
             className="text-3xs uppercase tracking-[0.1em] text-[var(--onboarding-text-subtle)] hover:text-[var(--onboarding-text-strong)] transition-colors hover:underline"
             onClick={() => dispatch({ type: "selectElizaCloudHosting" })}
           >
-            {t("onboarding.useElizaCloud", { defaultValue: "Use Eliza Cloud" })}
+            {t("onboarding.useElizaCloud", { defaultValue: "Deploy to Cloud" })}
           </button>
           <span className="text-3xs text-[var(--onboarding-text-faint)]" aria-hidden>|</span>
           <button
@@ -86,7 +86,7 @@ export function ConnectionProviderGridScreen({
             className="text-3xs uppercase tracking-[0.1em] text-[var(--onboarding-text-subtle)] hover:text-[var(--onboarding-text-strong)] transition-colors hover:underline"
             onClick={() => dispatch({ type: "selectRemoteHosting" })}
           >
-            {t("onboarding.connectRemote", { defaultValue: "Connect to Remote" })}
+            {t("onboarding.connectRemote", { defaultValue: "Deploy Remote" })}
           </button>
         </div>
       )}
