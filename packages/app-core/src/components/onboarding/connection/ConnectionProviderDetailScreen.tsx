@@ -27,7 +27,7 @@ import {
   formatSubscriptionRequestError,
   normalizeOpenAICallbackInput,
 } from "../../../utils/subscription-auth";
-import { openExternalUrl, preOpenWindow, navigatePreOpenedWindow } from "../../../utils";
+import { openExternalUrl, preOpenWindow } from "../../../utils";
 import { OnboardingTabs } from "../OnboardingTabs";
 import {
   getOnboardingChoiceCardClassName,
@@ -277,7 +277,17 @@ export function ConnectionProviderDetailScreen({
     try {
       const { authUrl } = await client.startAnthropicLogin();
       if (authUrl) {
-        navigatePreOpenedWindow(popup, authUrl);
+        let opened = false;
+        if (popup && !popup.closed) {
+          try { popup.location.href = authUrl; opened = true; } catch { /* blocked */ }
+        }
+        if (!opened) {
+          const w = window.open(authUrl, "_blank");
+          opened = Boolean(w);
+        }
+        if (!opened) {
+          setAnthropicError(`Open this link to log in: ${authUrl}`);
+        }
         // Always transition to the code-paste screen — even if the popup was
         // blocked the URL is logged to console and the user can open it manually.
         setAnthropicOAuthStarted(true);
@@ -366,7 +376,17 @@ export function ConnectionProviderDetailScreen({
     try {
       const { authUrl } = await client.startOpenAILogin();
       if (authUrl) {
-        navigatePreOpenedWindow(popup, authUrl);
+        let opened = false;
+        if (popup && !popup.closed) {
+          try { popup.location.href = authUrl; opened = true; } catch { /* blocked */ }
+        }
+        if (!opened) {
+          const w = window.open(authUrl, "_blank");
+          opened = Boolean(w);
+        }
+        if (!opened) {
+          setOpenaiError(`Open this link to log in: ${authUrl}`);
+        }
         setOpenaiOAuthStarted(true);
         return;
       }

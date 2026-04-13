@@ -28,8 +28,6 @@ import { dispatchElizaCloudStatusUpdated } from "../events";
 import {
   confirmDesktopAction,
   openExternalUrl,
-  preOpenWindow,
-  navigatePreOpenedWindow,
   yieldHttpAfterNativeMessageBox,
 } from "../utils";
 
@@ -280,10 +278,6 @@ export function useCloudState({
     setElizaCloudLoginError(null);
     elizaCloudPreferDisconnectedUntilLoginRef.current = false;
 
-    // Use the caller's pre-opened window (opened synchronously in the click
-    // handler to avoid popup blockers) or fall back to opening one here.
-    const popup = preOpened ?? preOpenWindow();
-
     // Determine if we should use direct cloud auth (no local backend) or
     // go through the local agent's proxy.
     const hasBackend = Boolean(client.getBaseUrl());
@@ -309,15 +303,31 @@ export function useCloudState({
         );
         elizaCloudLoginBusyRef.current = false;
         setElizaCloudLoginBusy(false);
-        popup?.close();
+        preOpened?.close();
         return;
       }
 
-      // Navigate the pre-opened window to the login URL.
+      // Open the login URL in a browser window.
       if (resp.browserUrl) {
-        navigatePreOpenedWindow(popup, resp.browserUrl);
+        let opened = false;
+        if (preOpened && !preOpened.closed) {
+          try {
+            preOpened.location.href = resp.browserUrl;
+            opened = true;
+          } catch { /* cross-origin or blocked */ }
+        }
+        if (!opened) {
+          const w = window.open(resp.browserUrl, "_blank");
+          opened = Boolean(w);
+        }
+        if (!opened) {
+          // Popup was blocked — show a clickable link so the user can open it.
+          setElizaCloudLoginError(
+            `Open this link to log in: ${resp.browserUrl}`,
+          );
+        }
       } else {
-        popup?.close();
+        preOpened?.close();
       }
 
       const sessionId = resp.sessionId ?? "";
