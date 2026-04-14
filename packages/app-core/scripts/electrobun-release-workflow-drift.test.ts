@@ -17,8 +17,11 @@ function workflowText() {
 }
 
 describe("electrobun release workflow drift", () => {
-  it("re-initializes the orchestrator checkout after disabling local eliza workspaces", () => {
+  it("hydrates the orchestrator plugin before and after disabling local eliza workspaces", () => {
     const workflow = workflowText();
+    const versionSourceIndex = workflow.indexOf(
+      "- name: Initialize release-check plugin version source",
+    );
     const disableIndex = workflow.indexOf(
       "- name: Disable repo-local eliza workspace",
     );
@@ -26,8 +29,10 @@ describe("electrobun release workflow drift", () => {
       "- name: Initialize release-check plugin checkout",
     );
 
+    expect(versionSourceIndex).toBeGreaterThanOrEqual(0);
     expect(disableIndex).toBeGreaterThanOrEqual(0);
     expect(initIndex).toBeGreaterThanOrEqual(0);
+    expect(versionSourceIndex).toBeLessThan(disableIndex);
     expect(initIndex).toBeGreaterThan(disableIndex);
     expect(workflow).toContain(
       "git -C eliza submodule update --init plugins/plugin-agent-orchestrator",
