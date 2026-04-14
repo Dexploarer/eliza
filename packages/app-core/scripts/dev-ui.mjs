@@ -32,7 +32,7 @@ import {
 import {
   resolveDesktopApiPort,
   resolveDesktopUiPort,
-} from "../../shared/src/runtime-env.ts";
+} from "@elizaos/shared/runtime-env";
 import { getBunVersionAdvisory } from "./lib/bun-version-guard.mjs";
 import { capacitorPluginsBuildNeeded } from "./lib/capacitor-plugin-build-needed.mjs";
 import { coerceBoolean } from "./lib/dev-ui-onchain.mjs";
@@ -724,11 +724,9 @@ function startVite() {
       ...process.env,
       NODE_ENV: "development",
       ELIZA_NAMESPACE: cliName,
-      ELIZA_PORT: String(UI_PORT),
       ELIZA_UI_PORT: String(UI_PORT),
       ELIZA_API_PORT: String(API_PORT),
-      ELIZA_API_PORT: String(API_PORT),
-      ELIZA_PORT: String(API_PORT),
+      ELIZA_PORT: String(UI_PORT),
       ELIZA_HOME_API_PORT: String(API_PORT),
     },
     stdio: ["inherit", "pipe", "pipe"],
@@ -779,12 +777,6 @@ if (uiOnly) {
     )}`,
   );
 
-  const chainEnv = {};
-
-  console.log(
-    `  ${green(logPrefix)} ${dim("Local Anvil/forge EVM bootstrap removed — use remote RPC in config when needed.")}`,
-  );
-
   // Security default: stealth shims are disabled unless explicitly enabled
   // via env vars or plugin config in eliza.json.
   const stealth = resolveStealthImportFlags();
@@ -804,6 +796,7 @@ if (uiOnly) {
   const apiCmd = hasBun
     ? [
         "bun",
+        "--no-install",
         ...resolvedStealthImports.flatMap((filePath) => [
           "--preload",
           filePath,
@@ -825,14 +818,10 @@ if (uiOnly) {
       {
         ...process.env,
         NODE_ENV: "development",
-        ...chainEnv,
-        ELIZA_NAMESPACE: cliName,
         ELIZA_NAMESPACE: cliName,
         ELIZA_API_PORT: String(API_PORT),
-        ELIZA_API_PORT: String(API_PORT),
-        ELIZA_PORT: String(API_PORT),
-        ELIZA_PORT: String(UI_PORT),
         ELIZA_UI_PORT: String(UI_PORT),
+        ELIZA_PORT: String(UI_PORT),
         ELIZA_HEADLESS: "1",
         ELIZA_DEV_AUTH_BYPASS: "1",
         LOG_LEVEL: devLogLevel,

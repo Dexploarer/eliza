@@ -1,4 +1,4 @@
-import { Button } from "@elizaos/app-core";
+
 import type { ProviderOption } from "../../../api";
 import { appNameInterpolationVars, useBranding } from "../../../config";
 import { canRunLocal } from "../../../platform/init";
@@ -16,6 +16,7 @@ import {
   onboardingChoiceCardRecommendedLabelClassName,
   onboardingChoiceCardTitleClassName,
 } from "../onboarding-form-primitives";
+import { Button } from "@elizaos/ui";
 import {
   OnboardingStepHeader,
   onboardingBodyTextShadowStyle,

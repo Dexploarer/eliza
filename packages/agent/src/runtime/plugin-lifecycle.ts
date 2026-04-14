@@ -10,13 +10,11 @@ import type {
   Service,
   ServiceClass,
   ServiceTypeName,
-  UUID,
 } from "@elizaos/core";
 import {
   resolveActionContexts,
   resolveProviderContexts,
-} from "../training/context-catalog.js";
-import type { AgentContext } from "../training/context-types.js";
+} from "../../../typescript/src/utils/context-catalog.ts";
 
 /** elizaOS runtime plugin lifecycle bookkeeping (not exported from @elizaos/core). */
 type ElizaPluginOwnership = {
@@ -71,9 +69,7 @@ type RuntimeSendHandler = (
   content: unknown,
 ) => Promise<unknown>;
 
-type PluginDisposeHook = (
-  runtime: AgentRuntime,
-) => Promise<void> | void;
+type PluginDisposeHook = (runtime: AgentRuntime) => Promise<void> | void;
 
 type PluginApplyConfigHook = (
   config: Record<string, string>,
@@ -85,19 +81,6 @@ type RuntimePluginWithLifecycleHooks = Plugin &
     dispose?: PluginDisposeHook;
     applyConfig?: PluginApplyConfigHook;
   };
-
-function toTrainingContexts(
-  contexts: AgentContext[] | undefined,
-): AgentContext[] | undefined {
-  if (!Array.isArray(contexts) || contexts.length === 0) {
-    return undefined;
-  }
-
-  return contexts.filter(
-    (context): context is AgentContext =>
-      typeof context === "string" && context.trim().length > 0,
-  );
-}
 
 type RuntimeServiceRegistrationStatus =
   | "pending"
@@ -131,9 +114,7 @@ export type RuntimePluginOwnership = ElizaPluginOwnership;
 type RuntimeWithPluginLifecycle = AgentRuntime & {
   __elizaPluginLifecycleInstalled?: boolean;
   __elizaPluginOwnership?: Map<string, RuntimePluginOwnership>;
-  unloadPlugin?: (
-    pluginName: string,
-  ) => Promise<RuntimePluginOwnership | null>;
+  unloadPlugin?: (pluginName: string) => Promise<RuntimePluginOwnership | null>;
   reloadPlugin?: (plugin: Plugin) => Promise<void>;
   applyPluginConfig?: (
     pluginName: string,
@@ -146,10 +127,7 @@ type RuntimeWithPluginLifecycle = AgentRuntime & {
 type RuntimePrivateState = {
   serviceTypes: Map<ServiceTypeName, RuntimeServiceClass[]>;
   servicePromises: Map<ServiceTypeName, Promise<Service>>;
-  servicePromiseHandlers: Map<
-    ServiceTypeName,
-    RuntimeServicePromiseHandler
-  >;
+  servicePromiseHandlers: Map<ServiceTypeName, RuntimeServicePromiseHandler>;
   startingServices: Map<ServiceTypeName, Promise<Service | null>>;
   serviceRegistrationStatus: Map<
     ServiceTypeName,
@@ -162,10 +140,7 @@ type RuntimePrivateState = {
     serviceType: string,
     serviceDef: RuntimeServiceClass,
   ) => Promise<Service | null>;
-  registerSendHandler?: (
-    source: string,
-    handler: RuntimeSendHandler,
-  ) => void;
+  registerSendHandler?: (source: string, handler: RuntimeSendHandler) => void;
 };
 
 const pluginRegistrationContext =
@@ -240,13 +215,7 @@ function applyEffectiveActionContexts(
 
   return {
     ...inherited,
-    contexts: [
-      ...resolveActionContexts(
-        inherited.name,
-        toTrainingContexts(inherited.contexts as AgentContext[] | undefined),
-        toTrainingContexts(pluginContexts as AgentContext[] | undefined),
-      ),
-    ],
+    contexts: [...resolveActionContexts(inherited)],
   };
 }
 
@@ -261,13 +230,7 @@ function applyEffectiveProviderContexts(
 
   return {
     ...inherited,
-    contexts: [
-      ...resolveProviderContexts(
-        inherited.name,
-        toTrainingContexts(inherited.contexts as AgentContext[] | undefined),
-        toTrainingContexts(pluginContexts as AgentContext[] | undefined),
-      ),
-    ],
+    contexts: [...resolveProviderContexts(inherited)],
   };
 }
 
@@ -278,7 +241,8 @@ function pushUniqueEvent(
   if (
     items.some(
       (existing) =>
-        existing.eventName === next.eventName && existing.handler === next.handler,
+        existing.eventName === next.eventName &&
+        existing.handler === next.handler,
     )
   ) {
     return;
@@ -571,19 +535,15 @@ async function teardownPluginOwnership(
   }
 
   const errors: Error[] = [];
-  const lifecyclePlugin =
-    ownership.registeredPlugin ?? ownership.plugin;
-  const disposeHook = (
-    lifecyclePlugin as RuntimePluginWithLifecycleHooks
-  ).dispose;
+  const lifecyclePlugin = ownership.registeredPlugin ?? ownership.plugin;
+  const disposeHook = (lifecyclePlugin as RuntimePluginWithLifecycleHooks)
+    .dispose;
 
   if (typeof disposeHook === "function") {
     try {
       await disposeHook(runtime);
     } catch (error) {
-      errors.push(
-        error instanceof Error ? error : new Error(String(error)),
-      );
+      errors.push(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
@@ -699,7 +659,9 @@ export function installRuntimePluginLifecycle(runtime: AgentRuntime): void {
         : null;
     if (
       actionName &&
-      runtime.actions.some((existingAction) => existingAction.name === actionName)
+      runtime.actions.some(
+        (existingAction) => existingAction.name === actionName,
+      )
     ) {
       runtime.logger.debug?.(
         {
@@ -827,11 +789,7 @@ export function installRuntimePluginLifecycle(runtime: AgentRuntime): void {
   }
 
   if (originalRunServiceStart) {
-    privateState._runServiceStart = (async (
-      key,
-      serviceType,
-      serviceClass,
-    ) => {
+    privateState._runServiceStart = (async (key, serviceType, serviceClass) => {
       const pluginName =
         serviceClassOwners.get(serviceClass) ??
         pluginRegistrationContext.getStore()?.ownership.pluginName;
@@ -840,7 +798,8 @@ export function installRuntimePluginLifecycle(runtime: AgentRuntime): void {
       }
       return await pluginServiceStartContext.run(
         { pluginName },
-        async () => await originalRunServiceStart(key, serviceType, serviceClass),
+        async () =>
+          await originalRunServiceStart(key, serviceType, serviceClass),
       );
     }) as typeof privateState._runServiceStart;
   }
@@ -897,9 +856,8 @@ export function installRuntimePluginLifecycle(runtime: AgentRuntime): void {
   }) as typeof runtime.registerPlugin;
 
   runtimeWithLifecycle.unloadPlugin = async (pluginName: string) => {
-    const ownership = getPluginOwnershipStore(runtimeWithLifecycle).get(
-      pluginName,
-    );
+    const ownership =
+      getPluginOwnershipStore(runtimeWithLifecycle).get(pluginName);
     if (!ownership) {
       return null;
     }
@@ -925,15 +883,13 @@ export function installRuntimePluginLifecycle(runtime: AgentRuntime): void {
     pluginName: string,
     config: Record<string, string>,
   ) => {
-    const ownership = getPluginOwnershipStore(runtimeWithLifecycle).get(
-      pluginName,
-    );
+    const ownership =
+      getPluginOwnershipStore(runtimeWithLifecycle).get(pluginName);
     if (!ownership) {
       return false;
     }
-    const pluginWithHooks = (
-      ownership.registeredPlugin ?? ownership.plugin
-    ) as RuntimePluginWithLifecycleHooks;
+    const pluginWithHooks = (ownership.registeredPlugin ??
+      ownership.plugin) as RuntimePluginWithLifecycleHooks;
     if (typeof pluginWithHooks.applyConfig !== "function") {
       return false;
     }

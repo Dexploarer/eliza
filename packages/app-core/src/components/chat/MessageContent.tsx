@@ -1,31 +1,17 @@
-/**
- * MessageContent — Renders a chat message's content.
- *
- * Follows the json-render pattern: specs are rendered client-side from JSON
- * in the agent's text response. No server-side block extraction needed.
- *
- * Client-side detection:
- *   1. [CONFIG:pluginId] markers → inline plugin config form (ConfigRenderer)
- *   2. Fenced UiSpec JSON → interactive UI (UiRenderer)
- *   3. Everything else → plain text
- */
+import type { ConversationMessage } from "../../api/client-types-chat";
+import type { PluginInfo } from "../../api/client-types-config";
+import { client } from "../../api/client";
+import { paramsToSchema } from "../pages/plugin-list-utils";
+import { ConfigRenderer, defaultRegistry } from "../config-ui/config-renderer";
+import { UiRenderer } from "../config-ui/ui-renderer";
+import type { JsonSchemaObject } from "../../config/config-catalog";
+import type { PatchOp, UiSpec } from "../../config/ui-spec";
+import { useApp } from "../../state/useApp";
+import type { ConfigUiHint } from "../../types";
+import { stripAssistantStageDirections } from "../../utils/assistant-text";
 
-import type { ConversationMessage, PluginInfo } from "@elizaos/app-core/api";
-import { client } from "@elizaos/app-core/api";
-import { paramsToSchema } from "@elizaos/app-core/components";
-import {
-  ConfigRenderer,
-  defaultRegistry,
-  type JsonSchemaObject,
-  type PatchOp,
-  UiRenderer,
-  type UiSpec,
-} from "@elizaos/app-core/config";
-import { useApp } from "@elizaos/app-core/state";
-import type { ConfigUiHint } from "@elizaos/app-core/types";
-import { stripAssistantStageDirections } from "@elizaos/app-core/utils";
-import { Button } from "@elizaos/app-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@elizaos/ui";
 
 /** Reject prototype-pollution keys that should never be traversed or rendered. */
 const BLOCKED_IDS = new Set(["__proto__", "constructor", "prototype"]);
@@ -668,7 +654,7 @@ function InlinePluginConfig({ pluginId: rawPluginId }: { pluginId: string }) {
   return (
     <div className="my-2 border border-border bg-card overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-bg-hover border-b border-border">
+      <div className="flex items-center justify-between px-3 py-2 bg-bg-hover">
         <div className="flex items-center gap-2 text-xs font-bold text-txt">
           {plugin.icon ? (
             <span className="text-sm">{plugin.icon}</span>
@@ -722,7 +708,7 @@ function InlinePluginConfig({ pluginId: rawPluginId }: { pluginId: string }) {
       )}
 
       {/* Footer */}
-      <div className="flex items-center gap-2 px-3 py-2 border-t border-border flex-wrap">
+      <div className="flex items-center gap-2 px-3 py-2 flex-wrap">
         {schema && hasConfigurableParams && (
           <Button
             variant="default"
@@ -851,7 +837,7 @@ function UiSpecBlock({ spec, raw }: { spec: UiSpec; raw: string }) {
 
   return (
     <div className="my-2 border border-border overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 bg-bg-hover border-b border-border">
+      <div className="flex items-center justify-between px-3 py-1.5 bg-bg-hover">
         <span className="text-2xs font-semibold text-muted uppercase tracking-wider">
           {t("messagecontent.InteractiveUI")}
         </span>
@@ -871,7 +857,7 @@ function UiSpecBlock({ spec, raw }: { spec: UiSpec; raw: string }) {
         </Button>
       </div>
       {showRaw && (
-        <div className="px-3 py-2 bg-card border-b border-border overflow-x-auto">
+        <div className="px-3 py-2 bg-card overflow-x-auto">
           <pre className="text-2xs text-muted font-mono whitespace-pre-wrap break-words m-0">
             {raw}
           </pre>

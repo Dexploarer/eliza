@@ -1,33 +1,15 @@
-/**
- * Chat view component.
- *
- * Layout: flex column filling parent. Header row (title + clear + toggles).
- * Scrollable messages area. Share/file notices below messages.
- * Input row at bottom with mic + textarea + send button.
- */
-
 import type {
   ConversationMessage,
   ImageAttachment,
-} from "@elizaos/app-core/api";
-import { client } from "@elizaos/app-core/api";
-import { isRoutineCodingAgentMessage } from "@elizaos/app-core/chat";
-import { useChatAvatarVoiceBridge } from "@elizaos/app-core/hooks";
-import {
-  getVrmPreviewUrl,
-  useApp,
-  useChatComposer,
-  usePtySessions,
-} from "@elizaos/app-core/state";
-import {
-  ChatAttachmentStrip,
-  ChatComposer,
-  ChatComposerShell,
-  ChatSourceIcon,
-  ChatThreadLayout,
-  ChatTranscript,
-  TypingIndicator,
-} from "@elizaos/app-core";
+} from "../../api/client-types-chat";
+import { client } from "../../api/client";
+import { isRoutineCodingAgentMessage } from "../../chat";
+import { useChatAvatarVoiceBridge } from "../../hooks/useChatAvatarVoiceBridge";
+import { useChatComposer } from "../../state/ChatComposerContext";
+import { usePtySessions } from "../../state/PtySessionsContext";
+import { useApp } from "../../state/useApp";
+import { getVrmPreviewUrl } from "../../state/vrm";
+
 import {
   type ChangeEvent,
   type DragEvent,
@@ -41,8 +23,9 @@ import {
 } from "react";
 import { AgentActivityBox } from "../chat/AgentActivityBox";
 import { MessageContent } from "../chat/MessageContent";
-import { CodingAgentControlChip } from "@elizaos/app-coding";
-import { PtyConsoleDrawer } from "@elizaos/app-coding";
+import { CodingAgentControlChip } from "@elizaos/app-task-coordinator";
+import { PtyConsoleDrawer } from "@elizaos/app-task-coordinator";
+import { ChatAttachmentStrip, ChatComposer, ChatComposerShell, ChatSourceIcon, ChatThreadLayout, ChatTranscript, TypingIndicator } from "@elizaos/ui";
 import {
   useChatVoiceController,
   useGameModalMessages,
@@ -866,7 +849,7 @@ function InboxChatPanel({
       className="flex flex-1 min-h-0 min-w-0 flex-col"
       aria-label={t("inboxview.Title", { defaultValue: "Inbox" })}
     >
-      <div className="flex items-center justify-between border-b border-border/40 px-5 py-3">
+      <div className="flex items-center justify-between px-5 py-3">
         <div className="min-w-0">
           <div className="text-sm font-bold text-txt truncate">
             {activeInboxChat.title}
@@ -915,7 +898,7 @@ function InboxChatPanel({
           />
         )}
       </div>
-      <div className="border-t border-border/40 bg-bg-hover/40 px-5 py-3">
+      <div className="bg-bg-hover/40 px-5 py-3">
         {activeInboxChat.canSend === false ? (
           <div className="text-xs-tight leading-5 text-muted">
             {t("inboxview.ReadOnlyReplyHint", {

@@ -1,6 +1,7 @@
-import { Switch } from "@elizaos/app-core";
+
 import type React from "react";
 import { useState } from "react";
+import { Switch } from "@elizaos/ui";
 
 /**
  * Collapsible policy card with toggle, summary in header, and expand-on-click.
@@ -67,7 +68,7 @@ export function PolicyToggle({
 
       {/* Content — only when enabled + expanded */}
       {enabled && expanded && children && (
-        <div className="border-t border-border/30 px-3.5 py-3">{children}</div>
+        <div className="px-3.5 py-3">{children}</div>
       )}
     </div>
   );

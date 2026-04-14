@@ -1,11 +1,7 @@
-/**
- * PluginCard — renders a single plugin as a card in the grid view.
- * Extracted from PluginsView to keep the main file focused on layout.
- */
 
-import { Button } from "@elizaos/app-core";
 import type { PluginInfo, PluginParamDef } from "../../api";
 import { useApp } from "../../state";
+import { Button } from "@elizaos/ui";
 import {
   getPluginResourceLinks,
   iconImageSource,
@@ -302,7 +298,7 @@ export function PluginCard({
           ))}
         </div>
       )}
-      <div className="mt-auto flex items-center gap-3 border-t border-border/40 bg-card/55 px-4 py-3">
+      <div className="mt-auto flex items-center gap-3 bg-card/55 px-4 py-3">
         {hasParams && !isShowcase ? (
           <>
             <span

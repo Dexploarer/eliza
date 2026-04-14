@@ -1,6 +1,5 @@
-/** SubscriptionStatus — Anthropic and OpenAI subscription connection panels. */
 
-import { Button, Input, Label } from "@elizaos/app-core";
+
 import { useCallback, useRef, useState } from "react";
 import { client } from "../../api";
 import { useTimeout } from "../../hooks";
@@ -14,6 +13,7 @@ import {
   normalizeOpenAICallbackInput,
 } from "../../utils/subscription-auth";
 import { openExternalUrl } from "../../utils";
+import { Button, Input, Label } from "@elizaos/ui";
 
 export interface SubscriptionStatusProps {
   resolvedSelectedId: string | null;
@@ -226,7 +226,7 @@ export function SubscriptionStatus({
   const handleOpenAIExchange = useCallback(async () => {
     if (openaiExchangeBusyRef.current) return;
     const normalized = normalizeOpenAICallbackInput(openaiCallbackRef.current);
-    if (!normalized.ok) {
+    if (normalized.ok === false) {
       setOpenaiError(t(normalized.error));
       return;
     }
@@ -264,7 +264,7 @@ export function SubscriptionStatus({
   }, [handleSelectSubscription, loadSubscriptionStatus, setOpenaiConnected, t]);
 
   return (
-    <div className="mt-4 pt-4 border-t border-border">
+    <div className="mt-4 pt-4">
       {resolvedSelectedId === "anthropic-subscription" && (
         <div>
           <div className="flex justify-between items-center mb-3">
@@ -311,7 +311,7 @@ export function SubscriptionStatus({
             </div>
           )}
 
-          <div className="flex items-center gap-4 border-b border-border mb-3">
+          <div className="flex items-center gap-4 mb-3">
             <Button
               variant="ghost"
               size="sm"

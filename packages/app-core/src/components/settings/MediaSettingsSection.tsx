@@ -1,14 +1,5 @@
-/**
- * MediaSettingsSection — provider selection + config for media generation.
- *
- * Follows the TTS pattern from CharacterView:
- *   - "cloud" vs "own-key" mode toggle
- *   - Provider button grid
- *   - Conditional API key inputs
- *   - Status badges (Configured / Needs Setup)
- */
 
-import { Button, SaveFooter, SettingsControls, Switch } from "@elizaos/app-core";
+
 import { useCallback, useEffect, useState } from "react";
 import {
   type AudioGenProvider,
@@ -36,13 +27,11 @@ import {
   getNestedValue,
   getProvidersForCategory,
   MEDIA_API_SOURCE_CATEGORY_KEYS,
-  MEDIA_SEGMENT_BUTTON_ACTIVE_CLASSNAME,
-  MEDIA_SEGMENT_BUTTON_CLASSNAME,
-  MEDIA_SEGMENT_BUTTON_INACTIVE_CLASSNAME,
   type MediaCategory,
   setNestedValue,
 } from "./media-settings-types";
 import { VoiceConfigView } from "./VoiceConfigView";
+import { Button, SaveFooter, SettingsControls, Switch } from "@elizaos/ui";
 
 // ── Re-exports (public API) ──────────────────────────────────────────
 
@@ -222,10 +211,10 @@ export function MediaSettingsSection() {
                   type="button"
                   variant={active ? "default" : "ghost"}
                   size="sm"
-                  className={`${MEDIA_SEGMENT_BUTTON_CLASSNAME} ${
+                  className={`flex-1 basis-[calc(50%-0.125rem)] sm:basis-0 min-h-touch rounded-lg border px-2 py-1.5 text-xs-tight font-semibold !whitespace-normal ${
                     active
-                      ? MEDIA_SEGMENT_BUTTON_ACTIVE_CLASSNAME
-                      : MEDIA_SEGMENT_BUTTON_INACTIVE_CLASSNAME
+                      ? "border-accent/45 bg-accent/16 text-txt-strong shadow-sm"
+                      : "border-border/40 text-muted-strong hover:border-border-strong hover:bg-bg-hover hover:text-txt"
                   }`}
                   onClick={() => setCompanionVrmPowerMode(mode)}
                   aria-pressed={active}
@@ -236,7 +225,7 @@ export function MediaSettingsSection() {
             })}
           </SettingsControls.SegmentedGroup>
           <div
-            className="flex flex-col gap-2 border-t border-border pt-3"
+            className="flex flex-col gap-2 pt-3"
             data-testid="settings-companion-half-framerate"
           >
             <div className="min-w-0">
@@ -256,10 +245,10 @@ export function MediaSettingsSection() {
                     type="button"
                     variant={active ? "default" : "ghost"}
                     size="sm"
-                    className={`${MEDIA_SEGMENT_BUTTON_CLASSNAME} ${
+                    className={`flex-1 basis-[calc(50%-0.125rem)] sm:basis-0 min-h-touch rounded-lg border px-2 py-1.5 text-xs-tight font-semibold !whitespace-normal ${
                       active
-                        ? MEDIA_SEGMENT_BUTTON_ACTIVE_CLASSNAME
-                        : MEDIA_SEGMENT_BUTTON_INACTIVE_CLASSNAME
+                        ? "border-accent/45 bg-accent/16 text-txt-strong shadow-sm"
+                        : "border-border/40 text-muted-strong hover:border-border-strong hover:bg-bg-hover hover:text-txt"
                     }`}
                     onClick={() => setCompanionHalfFramerateMode(mode)}
                     aria-pressed={active}
@@ -271,7 +260,7 @@ export function MediaSettingsSection() {
             </SettingsControls.SegmentedGroup>
           </div>
           <div
-            className="flex flex-col gap-2 border-t border-border pt-3"
+            className="flex flex-col gap-2 pt-3"
             data-testid="settings-companion-animate-when-hidden"
           >
             <div className="text-xs font-semibold text-txt">
@@ -284,7 +273,7 @@ export function MediaSettingsSection() {
               <Switch
                 className="shrink-0"
                 checked={companionAnimateWhenHidden}
-                onCheckedChange={(v) => setCompanionAnimateWhenHidden(v)}
+                onCheckedChange={(v: boolean) => setCompanionAnimateWhenHidden(v)}
                 aria-label={t("settings.companionAnimateWhenHidden.title")}
               />
             </div>
@@ -301,7 +290,7 @@ export function MediaSettingsSection() {
           defaultValue: "Media generation by category",
         })}
       >
-        <header className="flex flex-col gap-0.5 pb-2 border-b border-border/80">
+        <header className="flex flex-col gap-0.5 pb-2">
           <p className="text-2xs font-bold uppercase tracking-[0.1em] text-muted">
             {t("mediasettingssection.GenerateGroupTitle", {
               defaultValue: "Generation",
@@ -329,8 +318,8 @@ export function MediaSettingsSection() {
                 size="sm"
                 className={`flex-1 basis-[calc(50%-0.125rem)] sm:basis-0 min-h-touch rounded-lg border px-2 py-2 text-2xs sm:text-xs font-semibold !whitespace-normal ${
                   active
-                    ? MEDIA_SEGMENT_BUTTON_ACTIVE_CLASSNAME
-                    : MEDIA_SEGMENT_BUTTON_INACTIVE_CLASSNAME
+                    ? "border-accent/45 bg-accent/16 text-txt-strong shadow-sm"
+                    : "border-border/40 text-muted-strong hover:border-border-strong hover:bg-bg-hover hover:text-txt"
                 }`}
                 onClick={() => setActiveTab(cat)}
               >

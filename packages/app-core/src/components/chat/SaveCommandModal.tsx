@@ -1,19 +1,8 @@
-/**
- * Modal for naming and saving a custom /command from selected text.
- */
 
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Input,
-} from "@elizaos/app-core";
+
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useApp } from "../../state";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, Input } from "@elizaos/ui";
 
 interface SaveCommandModalProps {
   open: boolean;
@@ -78,12 +67,12 @@ export function SaveCommandModal({
   return (
     <Dialog
       open={open}
-      onOpenChange={(isOpen) => {
+      onOpenChange={(isOpen: boolean) => {
         if (!isOpen) onClose();
       }}
     >
       <DialogContent className="w-full max-w-md p-0 overflow-hidden rounded-xl">
-        <DialogHeader className="px-5 py-3 shrink-0 border-b border-border">
+        <DialogHeader className="px-5 py-3 shrink-0">
           <DialogTitle className="font-bold text-sm">
             {t("savecommandmodal.SaveAsCommand")}
           </DialogTitle>
@@ -149,7 +138,7 @@ export function SaveCommandModal({
           </pre>
         </div>
 
-        <DialogFooter className="px-5 py-3 border-t border-border">
+        <DialogFooter className="px-5 py-3">
           <Button variant="outline" size="sm" onClick={onClose}>
             {t("common.cancel")}
           </Button>

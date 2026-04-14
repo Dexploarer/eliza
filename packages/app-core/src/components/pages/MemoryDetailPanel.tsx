@@ -1,13 +1,7 @@
-/**
- * Memory Detail Panel — displays full content, metadata, and embedding values
- * for a selected memory record.
- *
- * Extracted from VectorBrowserView.tsx.
- */
 
-import { PagePanel } from "@elizaos/app-core";
 import { useApp } from "../../state";
 import type { MemoryRecord } from "./vector-browser-utils";
+import { PagePanel } from "@elizaos/ui";
 
 export function MemoryDetailPanel({ memory }: { memory: MemoryRecord | null }) {
   const { t } = useApp();
@@ -31,7 +25,7 @@ export function MemoryDetailPanel({ memory }: { memory: MemoryRecord | null }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="border-b border-border/40 px-6 py-5">
+      <div className="px-6 py-5">
         <div className="text-2xs font-semibold uppercase tracking-[0.16em] text-muted/60">
           {t("vectorbrowserview.Vectors", { defaultValue: "Vectors" })}
         </div>

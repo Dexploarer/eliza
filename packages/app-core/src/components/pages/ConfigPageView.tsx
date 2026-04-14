@@ -7,13 +7,7 @@
  */
 
 import type { WalletRpcSelections } from "@elizaos/shared/contracts/wallet";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@elizaos/app-core";
+
 import { useCallback, useEffect, useState } from "react";
 import { useApp } from "../../state";
 import {
@@ -30,10 +24,17 @@ import {
   SOLANA_RPC_OPTIONS,
 } from "./config-page-sections";
 import { SecretsView } from "./SecretsView";
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from "@elizaos/ui";
 
 /* ── ConfigPageView ──────────────────────────────────────────────────── */
 
-export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
+export function ConfigPageView({
+  embedded = false,
+  onWalletSaveSuccess,
+}: {
+  embedded?: boolean;
+  onWalletSaveSuccess?: () => void;
+}) {
   const {
     t,
     elizaCloudConnected,
@@ -103,7 +104,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
     }
   }, []);
 
-  const handleWalletSaveAll = useCallback(() => {
+  const handleWalletSaveAll = useCallback(async () => {
     const config = buildWalletRpcUpdateRequest({
       walletConfig,
       rpcFieldValues,
@@ -114,9 +115,13 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
       },
       selectedNetwork: selectedWalletNetwork,
     });
-    void handleWalletApiKeySave(config);
+    const saved = await handleWalletApiKeySave(config);
+    if (saved) {
+      onWalletSaveSuccess?.();
+    }
   }, [
     handleWalletApiKeySave,
+    onWalletSaveSuccess,
     rpcFieldValues,
     selectedBscRpc,
     selectedEvmRpc,
@@ -529,7 +534,9 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
               variant="default"
               size="sm"
               className="text-xs-tight"
-              onClick={handleWalletSaveAll}
+              onClick={() => {
+                void handleWalletSaveAll();
+              }}
               disabled={walletApiKeySaving}
             >
               {walletApiKeySaving
@@ -589,7 +596,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
                     selectedEvmRpc)
                   : selectedEvmRpc
               }
-              onSelect={setSelectedEvmRpc}
+              onSelect={(provider) => setSelectedEvmRpc(provider)}
               providerConfigs={evmRpcConfigs}
               rpcFieldValues={rpcFieldValues}
               onRpcFieldChange={handleRpcFieldChange}
@@ -597,7 +604,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
               containerClassName="flex flex-wrap gap-1.5"
               t={t}
             />
-            <hr className="border-border" />
+            <div className="py-1" />
             <RpcConfigSection
               title={t("configpageview.BSC", { defaultValue: "BSC" })}
               description={t("configpageview.BSCDesc", {
@@ -610,7 +617,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
                     selectedBscRpc)
                   : selectedBscRpc
               }
-              onSelect={setSelectedBscRpc}
+              onSelect={(provider) => setSelectedBscRpc(provider)}
               providerConfigs={bscRpcConfigs}
               rpcFieldValues={rpcFieldValues}
               onRpcFieldChange={handleRpcFieldChange}
@@ -618,7 +625,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
               containerClassName="flex flex-wrap gap-1.5"
               t={t}
             />
-            <hr className="border-border" />
+            <div className="py-1" />
             <RpcConfigSection
               title={t("configpageview.Solana", { defaultValue: "Solana" })}
               description={t("configpageview.SolanaDesc", {
@@ -631,7 +638,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
                       ?.id ?? selectedSolanaRpc)
                   : selectedSolanaRpc
               }
-              onSelect={setSelectedSolanaRpc}
+              onSelect={(provider) => setSelectedSolanaRpc(provider)}
               providerConfigs={solanaRpcConfigs}
               rpcFieldValues={rpcFieldValues}
               onRpcFieldChange={handleRpcFieldChange}
@@ -652,7 +659,9 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
               variant="default"
               size="sm"
               className="text-xs-tight"
-              onClick={handleWalletSaveAll}
+              onClick={() => {
+                void handleWalletSaveAll();
+              }}
               disabled={walletApiKeySaving}
             >
               {walletApiKeySaving
@@ -670,7 +679,7 @@ export function ConfigPageView({ embedded = false }: { embedded?: boolean }) {
           className="w-[min(100%-2rem,42rem)] max-h-[min(88vh,48rem)] overflow-hidden rounded-2xl border border-border/70 bg-card/96 p-0 shadow-2xl"
         >
           <div className="flex max-h-[min(88vh,48rem)] flex-col">
-            <DialogHeader className="flex flex-row items-center justify-between border-b border-border/70 px-5 py-4">
+            <DialogHeader className="flex flex-row items-center justify-between px-5 py-4">
               <div className="flex items-center gap-2">
                 <svg
                   width="15"

@@ -1,5 +1,5 @@
-import { logger } from "@elizaos/core";
 import type { IAgentRuntime } from "@elizaos/core";
+import { logger } from "@elizaos/core";
 import type {
   AppSessionJsonValue,
   AppSessionState,
@@ -21,7 +21,7 @@ function resolveApiBase(runtime: IAgentRuntime | null): string | null {
   // is served from the same origin as the client), so treating the
   // client URL as an API fallback keeps the route module active in
   // those contexts without requiring duplicated env configuration.
-  const rawCandidates: Array<string | null | undefined> = [
+  const rawCandidates: Array<string | number | boolean | null | undefined> = [
     typeof runtime?.getSetting === "function"
       ? runtime.getSetting("HYPERSCAPE_API_URL")
       : null,
@@ -32,7 +32,7 @@ function resolveApiBase(runtime: IAgentRuntime | null): string | null {
     process.env.HYPERSCAPE_CLIENT_URL,
   ];
   for (const raw of rawCandidates) {
-    if (!raw) continue;
+    if (!raw || typeof raw !== "string") continue;
     try {
       const parsed = new URL(raw);
       if (parsed.protocol !== "http:" && parsed.protocol !== "https:") continue;
@@ -48,7 +48,9 @@ function resolveAgentId(
   runtime: IAgentRuntime | null,
   viewer: AppLaunchResult["viewer"] | null,
 ): string | null {
-  const authMsg = viewer?.authMessage as Record<string, unknown> | undefined;
+  const authMsg = viewer?.authMessage as unknown as
+    | Record<string, unknown>
+    | undefined;
   const fromViewer =
     authMsg && typeof authMsg.agentId === "string" ? authMsg.agentId : null;
   const fromRuntime =
@@ -62,17 +64,19 @@ function resolveCharacterId(
   runtime: IAgentRuntime | null,
   viewer: AppLaunchResult["viewer"] | null,
 ): string | null {
-  const authMsg = viewer?.authMessage as Record<string, unknown> | undefined;
+  const authMsg = viewer?.authMessage as unknown as
+    | Record<string, unknown>
+    | undefined;
   const fromViewer =
     authMsg && typeof authMsg.characterId === "string"
       ? authMsg.characterId
       : null;
   if (fromViewer) return fromViewer;
-  return (
-    (typeof runtime?.getSetting === "function"
+  const setting =
+    typeof runtime?.getSetting === "function"
       ? runtime.getSetting("HYPERSCAPE_CHARACTER_ID")
-      : null) ?? null
-  );
+      : null;
+  return typeof setting === "string" ? setting : null;
 }
 
 async function fetchJson<T = unknown>(url: string): Promise<T | null> {
@@ -131,7 +135,9 @@ async function fetchLiveData(
 }> {
   const id = encodeURIComponent(agentId);
   const [agentsRes, goalRes, quickActionsRes, thoughtsRes] = await Promise.all([
-    fetchJson<{ agents?: EmbeddedAgentRecord[] }>(`${base}/api/embedded-agents`),
+    fetchJson<{ agents?: EmbeddedAgentRecord[] }>(
+      `${base}/api/embedded-agents`,
+    ),
     fetchJson<{
       goal?: GoalRecord | null;
       goalsPaused?: boolean;
@@ -220,8 +226,7 @@ function buildSession(
       recommendedGoals as unknown as AppSessionJsonValue;
   }
   if (recentThoughts.length > 0) {
-    telemetry.recentThoughts =
-      recentThoughts as unknown as AppSessionJsonValue;
+    telemetry.recentThoughts = recentThoughts as unknown as AppSessionJsonValue;
   }
 
   return {

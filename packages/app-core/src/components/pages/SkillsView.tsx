@@ -1,26 +1,5 @@
-/**
- * Skills management view — create, enable/disable, and install skills.
- *
- * Professional card-grid layout with search, stats, polished toggle switches,
- * and a structured install modal. Follows the CSS variable design system used
- * throughout the app (--bg, --card, --border, --accent, --muted, --txt, etc.).
- */
 
-import {
-  Button,
-  ConfirmDelete,
-  Input,
-  PageLayout,
-  PagePanel,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarPanel,
-  SidebarScrollRegion,
-  SkillSidebarItem,
-  StatusBadge,
-  Switch,
-} from "@elizaos/app-core";
+
 import { RefreshCw } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 
@@ -28,6 +7,7 @@ import type { SkillInfo } from "../../api";
 import { useApp } from "../../state";
 import { EditSkillModal, SkillsModalView } from "./skill-detail-panel";
 import { InstallModal } from "./skill-marketplace";
+import { PagePanel, SidebarContent, SidebarHeader, SidebarPanel, Sidebar, SidebarScrollRegion, SkillSidebarItem, Button, ConfirmDelete, Input, StatusBadge, Switch, PageLayout } from "@elizaos/ui";
 
 /* ── Main Skills View ───────────────────────────────────────────────── */
 
@@ -529,13 +509,13 @@ function SkillsFullView({ contentHeader }: { contentHeader?: ReactNode } = {}) {
                       <Switch
                         checked={selectedSkill.enabled}
                         disabled={skillToggleAction === selectedSkill.id}
-                        onCheckedChange={(next) =>
-                          handleSkillToggle(selectedSkill.id, next)
+                        onCheckedChange={(next: boolean | "indeterminate") =>
+                          handleSkillToggle(selectedSkill.id, next === true)
                         }
                       />
                     </div>
                   </div>
-                  <div className="border-t border-border/40 bg-bg/18 px-4 py-4 sm:px-5">
+                  <div className="bg-bg/18 px-4 py-4 sm:px-5">
                     <div className="mb-4 flex flex-wrap items-center gap-2">
                       <Button
                         variant="outline"
@@ -593,9 +573,7 @@ function SkillsFullView({ contentHeader }: { contentHeader?: ReactNode } = {}) {
                             {skillReviewReport.findings.map((finding, idx) => (
                               <div
                                 key={`${finding.file}:${finding.line}:${finding.message}`}
-                                className={`flex items-start gap-2 px-3 py-2 text-xs-tight ${
-                                  idx > 0 ? "border-t border-border/30" : ""
-                                }`}
+                                className={`flex items-start gap-2 px-3 py-2 text-xs-tight`}
                               >
                                 <span
                                   className={`shrink-0 rounded-full px-2 py-0.5 text-3xs font-bold uppercase tracking-[0.12em] ${

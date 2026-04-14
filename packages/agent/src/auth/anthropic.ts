@@ -1,15 +1,20 @@
 /**
  * Anthropic OAuth flow (Claude Pro/Max subscription)
  *
- * Uses inlined PKCE + token exchange (formerly from @mariozechner/pi-ai).
+ * Uses inlined PKCE + token exchange (vendored OAuth helpers).
  * The callback API is adapted to a start/exchange pattern for HTTP route handlers.
+ *
+ * TODO(plugin-extraction): This module is a candidate for extraction into
+ * @elizaos/plugin-anthropic. The OAuth flow is specific to the Anthropic
+ * subscription provider and should be owned by that plugin rather than
+ * living in the core agent package.
  */
 
+import type { OAuthCredentials } from "./types.js";
 import {
   loginAnthropic as loginAnthropicFlow,
   refreshAnthropicToken as refreshAnthropicTokenFlow,
 } from "./vendor/pi-oauth/anthropic-login.js";
-import type { OAuthCredentials } from "./types.js";
 
 export interface AnthropicFlow {
   authUrl: string;

@@ -1,4 +1,4 @@
-import { isTruthyEnvValue } from "./env-utils.js";
+import { isTruthyEnvValue } from "./env-utils.impl.js";
 
 const DEFAULT_API_BIND_HOST = "127.0.0.1";
 export const DEFAULT_SERVER_ONLY_PORT = 2138;
@@ -344,9 +344,14 @@ export function syncResolvedApiPort(
 ): void {
   const normalizedPort = String(actualPort);
   env.ELIZA_API_PORT = normalizedPort;
-  env.ELIZA_PORT = normalizedPort;
   if (opts?.overwriteUiPort) {
     env.ELIZA_UI_PORT = normalizedPort;
+    env.ELIZA_PORT = normalizedPort;
+    return;
+  }
+
+  if (!env.ELIZA_UI_PORT) {
+    env.ELIZA_PORT = normalizedPort;
   }
 }
 

@@ -4,8 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import type { AgentRuntime, IAgentRuntime } from "@elizaos/core";
 import { createTestRuntime } from "../helpers/pglite-runtime.ts";
-import type { SwarmCoordinator } from "@elizaos/core/orchestrator";
-import { PTYService } from "@elizaos/core/orchestrator";
+import type { SwarmCoordinator } from "@elizaos/plugin-agent-orchestrator";
+import { PTYService } from "@elizaos/plugin-agent-orchestrator";
 
 async function waitFor(
   predicate: () => Promise<boolean>,
@@ -79,7 +79,7 @@ async function main(): Promise<void> {
   );
 
   workdir = fs.mkdtempSync(
-    path.join(os.tmpdir(), "milady-task-thread-integration-"),
+    path.join(os.tmpdir(), "eliza-task-thread-integration-"),
   );
   const outputFile = path.join(workdir, "integration-output.txt");
   const sentinel = `REAL_PTY_DB_TEST_${Date.now()}`;
@@ -89,7 +89,7 @@ async function main(): Promise<void> {
     originalRequest:
       "Create a local artifact that proves PTY output and task state are persisted.",
     metadata: {
-      repo: "https://github.com/example/milady",
+      repo: "https://github.com/example/eliza",
       source: "task-thread-integration-script",
     },
   });

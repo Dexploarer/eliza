@@ -1,28 +1,12 @@
-/**
- * MemoryViewerView — memory inspection workspace with feed, browser, and
- * person-centric views for debugging memory/fact/relationship extraction.
- */
+import { client } from "../../api/client";
+import type {
+  MemoryBrowseItem,
+  MemoryBrowseResponse,
+  MemoryFeedResponse,
+  MemoryStatsResponse,
+} from "../../api/client-types-chat";
+import type { RelationshipsPersonSummary } from "../../api/client-types-relationships";
 
-import {
-  client,
-  type MemoryBrowseItem,
-  type MemoryBrowseResponse,
-  type MemoryFeedResponse,
-  type MemoryStatsResponse,
-  type RelationshipsPersonSummary,
-} from "@elizaos/app-core/api";
-import {
-  Button,
-  MetaPill,
-  PageLayout,
-  PagePanel,
-  SegmentedControl,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarPanel,
-  SidebarScrollRegion,
-} from "@elizaos/app-core";
 import { RefreshCw, Search } from "lucide-react";
 import {
   type ReactNode,
@@ -34,6 +18,7 @@ import {
 } from "react";
 import { useApp } from "../../state";
 import { formatDateTime } from "../../utils/format";
+import { PagePanel, MetaPill, SidebarContent, SidebarHeader, SidebarPanel, Sidebar, SidebarScrollRegion, Button, SegmentedControl, PageLayout } from "@elizaos/ui";
 
 // ── Constants ────────────────────────────────────────────────────────────
 
@@ -128,7 +113,7 @@ function MemoryCard({
         {expanded ? text : truncateText(text)}
       </div>
       {expanded ? (
-        <div className="mt-3 space-y-1.5 border-t border-border/16 pt-3">
+        <div className="mt-3 space-y-1.5 pt-3">
           {memory.entityId ? (
             <div className="text-xs-tight text-muted">
               <span className="font-semibold uppercase tracking-[0.12em]">

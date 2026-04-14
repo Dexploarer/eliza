@@ -1,14 +1,9 @@
-import {
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  StatusBadge,
-} from "@elizaos/app-core";
+
+
 import { useState } from "react";
 import { isElectrobunRuntime } from "../../bridge";
 import { useApp } from "../../state";
+import { Button, Card, CardContent, CardDescription, CardHeader, StatusBadge } from "@elizaos/ui";
 
 const OVERLAY_SHELL_CLASS =
   "fixed inset-0 z-[1001] flex min-h-screen w-full items-center justify-center overflow-hidden bg-bg/80 px-4 py-6 font-body text-txt backdrop-blur-sm sm:px-6";
@@ -53,7 +48,7 @@ export function ConnectionLostOverlay() {
       className={OVERLAY_SHELL_CLASS}
     >
       <Card className={OVERLAY_CARD_CLASS}>
-        <CardHeader className="border-b border-border/60 bg-danger/5 pb-6 pt-6">
+        <CardHeader className="bg-danger/5 pb-6 pt-6">
           <div className="flex flex-col gap-4">
             <StatusBadge
               label={t("connectionlostoverlay.ConnectionLost", {
@@ -91,7 +86,7 @@ export function ConnectionLostOverlay() {
             })}
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-border/40 pt-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center">
             <Button
               variant="default"
               size="lg"

@@ -58,7 +58,7 @@ export function buildTestEnv(cwd) {
     }
   }
   env.NODE_NO_WARNINGS = env.NODE_NO_WARNINGS || "1";
-  env.MILADY_LIVE_TEST = "0";
+  env.ELIZA_LIVE_TEST = "0";
   env.ELIZA_LIVE_TEST = "0";
   env.PWD = path.resolve(cwd);
   return env;
@@ -300,8 +300,8 @@ async function cleanupOtherLockFiles(lockDir, currentLockPath) {
     const childPid = parseLockPid(existing.childPid);
 
     if (ownerPid && isPidAlive(ownerPid)) {
-      // Skip locks held by ancestor processes (e.g. parent test-runner)
-      if (isAncestorPid(ownerPid)) {
+      // Skip locks held by this process or its ancestors (e.g. parent test-runner)
+      if (ownerPid === process.pid || isAncestorPid(ownerPid)) {
         continue;
       }
       activeLocks.push({

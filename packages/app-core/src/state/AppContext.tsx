@@ -50,8 +50,10 @@ import {
   invokeDesktopBridgeRequestWithTimeout,
   isElectrobunRuntime,
 } from "../bridge";
-import { mapServerTasksToSessions } from "@elizaos/app-coding";
+import { mapServerTasksToSessions } from "../chat/coding-agent-session-state";
 import { BrandingContext, DEFAULT_BRANDING } from "../config/branding";
+import { AppBootContext } from "../config/boot-config-react";
+import { getBootConfig } from "../config/boot-config-store";
 import {
   dispatchAppEmoteEvent,
   dispatchElizaCloudStatusUpdated,
@@ -59,7 +61,9 @@ import {
 import type { UiLanguage } from "../i18n";
 import {
   COMPANION_ENABLED,
+  isRouteRootPath,
   resolveInitialTabForPath,
+  tabFromPath,
   type Tab,
 } from "../navigation";
 import {
@@ -165,6 +169,7 @@ import { useDataLoaders } from "./useDataLoaders";
 import { useNavigationState } from "./useNavigationState";
 import { useOnboardingCallbacks } from "./useOnboardingCallbacks";
 import { useChatCallbacks } from "./useChatCallbacks";
+import { ConfirmDialog, PromptDialog, useConfirm, usePrompt } from "@elizaos/ui";
 
 export {
   type ActionNotice,
@@ -247,19 +252,9 @@ export {
 } from "./internal";
 export { AGENT_READY_TIMEOUT_MS } from "./types";
 
-import {
-  ConfirmDialog,
-  PromptDialog,
-  useConfirm,
-  usePrompt,
-} from "@elizaos/app-core";
-
 const DEFAULT_LANDING_TAB: Tab = COMPANION_ENABLED ? "companion" : "chat";
 
-function traceGreeting(
-  phase: string,
-  detail?: Record<string, unknown>,
-): void {
+function traceGreeting(phase: string, detail?: Record<string, unknown>): void {
   try {
     if (
       typeof localStorage !== "undefined" &&
@@ -1054,6 +1049,11 @@ function AppProviderInner({
       mintShiny,
       whitelistStatus,
       whitelistLoading,
+      wallets,
+      walletPrimary,
+      walletPrimaryRestarting,
+      walletPrimaryPending,
+      cloudRefreshing,
     },
     setBrowserEnabled,
     setWalletEnabled,
@@ -1077,6 +1077,8 @@ function AppProviderInner({
     loadDropStatus,
     mintFromDrop,
     loadWhitelistStatus,
+    setPrimary: setWalletPrimary,
+    refreshCloud: refreshCloudWallets,
   } = walletHook;
 
   // setActionNotice is now provided by useLifecycleState
@@ -1159,6 +1161,17 @@ function AppProviderInner({
     navigation,
   } = navHook;
 
+  useEffect(() => {
+    const navPath = getNavigationPathFromWindow();
+    if (isRouteRootPath(navPath)) {
+      return;
+    }
+    const routeTab = tabFromPath(navPath);
+    if (routeTab && routeTab !== tab) {
+      setTabRaw(routeTab);
+    }
+  }, [tab, setTabRaw]);
+
   // loadLogs is now in useLogsState (logsHook)
 
   // ── Data loading (extracted to useDataLoaders) ────────────────────
@@ -1196,6 +1209,10 @@ function AppProviderInner({
     getBscTradeQuote,
     getBscTradeTxStatus,
     getStewardStatus,
+    getStewardAddresses,
+    getStewardBalance,
+    getStewardTokens,
+    getStewardWebhookEvents,
     getStewardHistory,
     getStewardPending,
     approveStewardTx,
@@ -1749,7 +1766,7 @@ function AppProviderInner({
   // all derive from its reducer state, so state is the only dep we need.
   // biome-ignore lint/correctness/useExhaustiveDependencies: coordinator fields all derive from state
   const stableStartupCoordinator = useMemo(
-    () => startupCoordinator,
+    () => startupCoordinator as AppContextValue["startupCoordinator"],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [startupCoordinator.state],
   );
@@ -2042,6 +2059,13 @@ function AppProviderInner({
       mintShiny,
       whitelistStatus,
       whitelistLoading,
+      wallets,
+      walletPrimary,
+      walletPrimaryRestarting,
+      walletPrimaryPending,
+      cloudRefreshing,
+      setWalletPrimary,
+      refreshCloudWallets,
       characterData,
       characterLoading,
       characterSaving,
@@ -2277,6 +2301,10 @@ function AppProviderInner({
       getBscTradeQuote,
       getBscTradeTxStatus,
       getStewardStatus,
+      getStewardAddresses,
+      getStewardBalance,
+      getStewardTokens,
+      getStewardWebhookEvents,
       getStewardHistory,
       getStewardPending,
       approveStewardTx,
@@ -2439,6 +2467,13 @@ function AppProviderInner({
       mintShiny,
       whitelistStatus,
       whitelistLoading,
+      wallets,
+      walletPrimary,
+      walletPrimaryRestarting,
+      walletPrimaryPending,
+      cloudRefreshing,
+      setWalletPrimary,
+      refreshCloudWallets,
       characterData,
       characterLoading,
       characterSaving,
@@ -2668,6 +2703,10 @@ function AppProviderInner({
       getBscTradeQuote,
       getBscTradeTxStatus,
       getStewardStatus,
+      getStewardAddresses,
+      getStewardBalance,
+      getStewardTokens,
+      getStewardWebhookEvents,
       getStewardHistory,
       getStewardPending,
       approveStewardTx,
@@ -2716,26 +2755,36 @@ function AppProviderInner({
     ],
   );
 
+  const bootConfig = getBootConfig();
+  const bootConfigValue = useMemo(
+    () => ({
+      ...bootConfig,
+      branding: { ...bootConfig.branding, ...brandingOverride },
+    }),
+    [bootConfig, brandingOverride],
+  );
   const mergedBranding = useMemo(
-    () => ({ ...DEFAULT_BRANDING, ...brandingOverride }),
-    [brandingOverride],
+    () => ({ ...DEFAULT_BRANDING, ...bootConfigValue.branding }),
+    [bootConfigValue],
   );
 
   return (
-    <BrandingContext.Provider value={mergedBranding}>
-      <CompanionSceneConfigCtx.Provider value={companionSceneConfig}>
-        <PtySessionsCtx.Provider value={ptySessionsValue}>
-          <ChatInputRefCtx.Provider value={chatInputRef}>
-            <ChatComposerCtx.Provider value={composerValue}>
-              <AppContext.Provider value={value}>
-                {children}
-                <ConfirmDialog {...modalProps} />
-                <PromptDialog {...promptModalProps} />
-              </AppContext.Provider>
-            </ChatComposerCtx.Provider>
-          </ChatInputRefCtx.Provider>
-        </PtySessionsCtx.Provider>
-      </CompanionSceneConfigCtx.Provider>
-    </BrandingContext.Provider>
+    <AppBootContext.Provider value={bootConfigValue}>
+      <BrandingContext.Provider value={mergedBranding}>
+        <CompanionSceneConfigCtx.Provider value={companionSceneConfig}>
+          <PtySessionsCtx.Provider value={ptySessionsValue}>
+            <ChatInputRefCtx.Provider value={chatInputRef}>
+              <ChatComposerCtx.Provider value={composerValue}>
+                <AppContext.Provider value={value}>
+                  {children}
+                  <ConfirmDialog {...modalProps} />
+                  <PromptDialog {...promptModalProps} />
+                </AppContext.Provider>
+              </ChatComposerCtx.Provider>
+            </ChatInputRefCtx.Provider>
+          </PtySessionsCtx.Provider>
+        </CompanionSceneConfigCtx.Provider>
+      </BrandingContext.Provider>
+    </AppBootContext.Provider>
   );
 }

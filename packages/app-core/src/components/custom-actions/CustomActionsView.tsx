@@ -1,12 +1,14 @@
-import { type CustomActionDef, client } from "@elizaos/app-core/api";
-import { useApp } from "@elizaos/app-core/state";
+import { client } from "../../api/client";
+import type { CustomActionDef } from "@elizaos/agent/contracts/config";
+import { useApp } from "../../state/useApp";
 import {
   alertDesktopMessage,
   confirmDesktopAction,
-} from "@elizaos/app-core/utils";
-import { Button, Input, Switch } from "@elizaos/app-core";
+} from "../../utils/desktop-dialogs";
+
 import { useCallback, useEffect, useState } from "react";
 import { CustomActionEditor } from "./CustomActionEditor";
+import { Button, Input, Switch } from "@elizaos/ui";
 
 const CUSTOM_ACTIONS_SHELL_CLASS =
   "flex h-full min-h-0 flex-col gap-4 rounded-2xl border border-border/60 bg-card/70 p-4 shadow-sm ring-1 ring-border/15 backdrop-blur-sm";
@@ -351,12 +353,12 @@ export function CustomActionsView() {
                 </div>
               </Button>
 
-              <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/35 pt-3">
+              <div className="mt-auto flex items-center justify-between gap-3 pt-3">
                 {/* biome-ignore lint/a11y/noLabelWithoutControl: form control is associated programmatically */}
                 <label className="flex min-h-touch cursor-pointer items-center gap-2">
                   <Switch
                     checked={action.enabled}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean | "indeterminate") =>
                       handleToggleEnabled(action.id, !!checked)
                     }
                   />

@@ -1,29 +1,10 @@
-/**
- * TrajectoriesView — desktop trajectory workspace with a sidebar rail and
- * detail viewer. The right pane shows the selected trajectory (default: latest).
- */
+import { client } from "../../api/client";
+import type {
+  TrajectoryListResult,
+  TrajectoryRecord,
+} from "../../api/client-types-cloud";
+import { useApp } from "../../state/useApp";
 
-import {
-  client,
-  type TrajectoryListResult,
-  type TrajectoryRecord,
-} from "@elizaos/app-core/api";
-import { useApp } from "@elizaos/app-core/state";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  PageLayout,
-  PagePanel,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarPanel,
-  SidebarScrollRegion,
-  TrajectorySidebarItem,
-} from "@elizaos/app-core";
 import {
   type ReactNode,
   useCallback,
@@ -35,6 +16,7 @@ import {
 import { Download, RefreshCw, Trash2, XCircle } from "lucide-react";
 import { TrajectoryDetailView } from "./TrajectoryDetailView";
 import { ConfirmDeleteControl } from "../shared/confirm-delete-control";
+import { PagePanel, SidebarContent, SidebarHeader, SidebarPanel, Sidebar, SidebarScrollRegion, TrajectorySidebarItem, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, PageLayout } from "@elizaos/ui";
 import {
   formatTrajectoryDuration,
   formatTrajectoryTimestamp,
@@ -473,7 +455,7 @@ export function TrajectoriesView({
           )}
 
           {totalPages > 1 && (
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/20 pt-3 text-xs text-muted">
+            <div className="mt-3 flex items-center justify-between gap-2 pt-3 text-xs text-muted">
               <span className="min-w-0">
                 {t("trajectoriesview.ShowingRange", {
                   start: page * pageSize + 1,

@@ -1,22 +1,12 @@
-/**
- * Unified wallet header row: total, view toggle, chain filter, sort, refresh.
- */
-
 import type {
   WalletBalancesResponse,
   WalletNftsResponse,
-} from "@elizaos/app-core/api";
-import type { createTranslator } from "@elizaos/app-core/i18n";
-import type { AppState } from "@elizaos/app-core/state";
-import {
-  Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@elizaos/app-core";
+} from "@elizaos/shared/contracts/wallet";
+import type { createTranslator } from "../../i18n";
+import type { AppState } from "../../state/types";
+
 import { CHAIN_CONFIGS, PRIMARY_CHAIN_KEYS } from "./chainConfig";
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@elizaos/ui";
 
 type InventoryToolbarStateKey = "inventoryView" | "inventorySort";
 type InventorySort = AppState["inventorySort"];
@@ -70,7 +60,7 @@ export function InventoryToolbar({
     addresses.length > 0 && typeof onCopyAddress === "function";
 
   return (
-    <div className="space-y-2 border-b border-border pb-3">
+    <div className="space-y-2 pb-3">
       <div className="flex flex-wrap items-center gap-2">
         <div
           className="mr-auto text-xl font-bold text-txt-strong"
@@ -118,7 +108,7 @@ export function InventoryToolbar({
 
         <Select
           value={chainFocus}
-          onValueChange={(value) => onChainChange(value)}
+          onValueChange={(value: string) => onChainChange(value)}
         >
           <SelectTrigger
             data-testid="wallet-chain-select"
@@ -140,7 +130,7 @@ export function InventoryToolbar({
         {inventoryView === "tokens" && (
           <Select
             value={inventorySort}
-            onValueChange={(nextSort) => {
+            onValueChange={(nextSort: string) => {
               if (isInventorySort(nextSort)) {
                 setState("inventorySort", nextSort);
               }

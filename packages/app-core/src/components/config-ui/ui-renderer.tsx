@@ -1,24 +1,5 @@
-/**
- * ui-renderer.tsx — General-purpose json-render declarative UI renderer.
- *
- * Renders a UiSpec tree into React components. Supports:
- *   - 35+ component types (layout, typography, form, data, feedback, nav, viz, interaction)
- *   - State binding via statePath
- *   - Dynamic values via $path references
- *   - Conditional props via $cond expressions
- *   - List rendering via repeat config
- *   - Event bindings via on.press / on.change
- */
 
-import {
-  Button,
-  Checkbox,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@elizaos/app-core";
+
 import React, {
   createContext,
   useCallback,
@@ -30,11 +11,11 @@ import { useApp } from "../../state";
 import { confirmDesktopAction, resolveAppAssetUrl } from "../../utils";
 import { getByPath, setByPath } from "../../config/config-catalog";
 import {
-  CONFIG_FIELD_LABEL_CLASSNAME,
   ConfigFieldErrors,
   getConfigInputClassName,
   getConfigTextareaClassName,
 } from "./config-control-primitives";
+import { Button, Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@elizaos/ui";
 import type {
   AuthState,
   CondExpr,
@@ -42,8 +23,8 @@ import type {
   UiElement,
   UiRenderContext,
   UiSpec,
-  ValidationCheck,
-  VisibilityCondition,
+  UiSpecValidationCheck,
+  UiSpecVisibilityCondition,
 } from "../../config/ui-spec";
 
 const UiContext = createContext<UiRenderContext | null>(null);
@@ -149,7 +130,7 @@ function resolveProps(
 // ── Visibility evaluation ────────────────────────────────────────────
 
 export function evaluateUiVisibility(
-  condition: VisibilityCondition | undefined,
+  condition: UiSpecVisibilityCondition | undefined,
   state: Record<string, unknown>,
   auth?: AuthState,
 ): boolean {
@@ -194,9 +175,13 @@ export function evaluateUiVisibility(
 
   // Logic combinators
   if ("and" in condition)
-    return condition.and.every((c) => evaluateUiVisibility(c, state, auth));
+    return condition.and.every((c: UiSpecVisibilityCondition) =>
+      evaluateUiVisibility(c, state, auth),
+    );
   if ("or" in condition)
-    return condition.or.some((c) => evaluateUiVisibility(c, state, auth));
+    return condition.or.some((c: UiSpecVisibilityCondition) =>
+      evaluateUiVisibility(c, state, auth),
+    );
   if ("not" in condition)
     return !evaluateUiVisibility(condition.not, state, auth);
 
@@ -258,7 +243,7 @@ const BUILTIN_VALIDATORS: Record<
 // ── Validation runner ───────────────────────────────────────────────
 
 export function runValidation(
-  checks: ValidationCheck[],
+  checks: UiSpecValidationCheck[],
   value: unknown,
   customValidators?: Record<
     string,
@@ -416,7 +401,7 @@ const SeparatorComponent: ComponentFn = (props) => {
   return isVert ? (
     <div className="w-px bg-border self-stretch" />
   ) : (
-    <hr className="border-t border-border my-2" />
+    <hr className="my-2" />
   );
 };
 
@@ -470,9 +455,7 @@ const InputComponent: ComponentFn = (props, _children, ctx, el) => {
   return (
     <div className="flex flex-col gap-1">
       {props.label ? (
-        <span className={CONFIG_FIELD_LABEL_CLASSNAME}>
-          {String(props.label)}
-        </span>
+        <span className="text-xs font-semibold">{String(props.label)}</span>
       ) : null}
       <input
         className={getConfigInputClassName({
@@ -512,9 +495,7 @@ const TextareaComponent: ComponentFn = (props, _children, ctx, el) => {
   return (
     <div className="flex flex-col gap-1">
       {props.label ? (
-        <span className={CONFIG_FIELD_LABEL_CLASSNAME}>
-          {String(props.label)}
-        </span>
+        <span className="text-xs font-semibold">{String(props.label)}</span>
       ) : null}
       <textarea
         className={getConfigTextareaClassName({
@@ -556,13 +537,11 @@ const SelectComponent: ComponentFn = (props, _children, ctx, el) => {
   return (
     <div className="flex flex-col gap-1">
       {props.label ? (
-        <span className={CONFIG_FIELD_LABEL_CLASSNAME}>
-          {String(props.label)}
-        </span>
+        <span className="text-xs font-semibold">{String(props.label)}</span>
       ) : null}
       <Select
         value={String(value ?? "") || "__none__"}
-        onValueChange={(v) => {
+        onValueChange={(v: string) => {
           handleChange(v === "__none__" ? "" : v);
           handleBlur();
         }}
@@ -609,7 +588,7 @@ const CheckboxComponent: ComponentFn = (props, _children, ctx) => {
     <label className="flex items-center gap-2 text-xs cursor-pointer">
       <Checkbox
         checked={!!value}
-        onCheckedChange={(checked) => setValue(!!checked)}
+        onCheckedChange={(checked: boolean | "indeterminate") => setValue(!!checked)}
       />
       <span className="font-semibold">{String(props.label ?? "")}</span>
     </label>
@@ -819,7 +798,7 @@ const TableComponent: ComponentFn = (props) => {
             {columns.map((col) => (
               <th
                 key={col}
-                className="text-left px-2.5 py-1.5 border-b border-border font-semibold text-muted"
+                className="text-left px-2.5 py-1.5 font-semibold text-muted"
               >
                 {col}
               </th>
@@ -830,7 +809,7 @@ const TableComponent: ComponentFn = (props) => {
           {rows.map((row) => (
             <tr
               key={row.join("|")}
-              className="border-b border-border last:border-b-0"
+              className=""
             >
               {row.map((cell) => (
                 <td key={cell} className="px-2.5 py-1.5">
@@ -1168,7 +1147,7 @@ const TabsComponent: ComponentFn = (props, _children, ctx) => {
   const activeTab = tabs.find((t) => t.value === active);
   return (
     <div>
-      <div className="flex border-b border-border">
+      <div className="flex">
         {tabs.map((tab) => (
           <Button
             key={tab.value}
@@ -1553,7 +1532,7 @@ const DrawerComponent: ComponentFn = (props, children, ctx) => {
       role="dialog"
       aria-modal="true"
     >
-      <div className="w-full max-h-[80vh] border-t border-border bg-card p-5 shadow-lg overflow-y-auto animate-[slide-up_200ms_ease]">
+      <div className="w-full max-h-[80vh] bg-card p-5 shadow-lg overflow-y-auto animate-[slide-up_200ms_ease]">
         <div className="w-10 h-1 bg-border mx-auto mb-3 rounded-full" />
         {props.title ? (
           <div className="font-bold text-sm">{String(props.title)}</div>

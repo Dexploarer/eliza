@@ -8,10 +8,10 @@
  */
 
 import { useCallback, useState } from "react";
-import { prepareDraftForSave } from "../actions/character";
+import { prepareDraftForSave } from "../character/character-draft-helpers";
 import type { AgentStatus } from "../api";
 import { type CharacterData, client } from "../api";
-import { replaceNameTokens } from "../components/character/character-editor-helpers";
+import { replaceNameTokens } from "../utils/name-tokens";
 import {
   loadAvatarIndex,
   loadPersistedActivePackId,

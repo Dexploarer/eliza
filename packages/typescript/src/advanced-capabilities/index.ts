@@ -14,52 +14,51 @@
 import { withCanonicalActionDocs } from "../action-docs.ts";
 import type { IAgentRuntime } from "../types/index.ts";
 import type { ServiceClass } from "../types/plugin.ts";
+// Clipboard imports
+import {
+	clipboardAppendAction,
+	clipboardDeleteAction,
+	clipboardListAction,
+	clipboardProvider,
+	clipboardReadAction,
+	clipboardSearchAction,
+	clipboardWriteAction,
+	readAttachmentAction,
+	readFileAction,
+	removeFromClipboardAction,
+} from "./clipboard/index.ts";
 import {
 	experienceEvaluator,
 	experienceProvider,
 	recordExperienceAction,
 } from "./experience/index.ts";
 
-// Clipboard imports
-import {
-	clipboardProvider,
-	clipboardWriteAction,
-	clipboardReadAction,
-	clipboardSearchAction,
-	clipboardListAction,
-	clipboardDeleteAction,
-	clipboardAppendAction,
-	readFileAction,
-	readAttachmentAction,
-	removeFromClipboardAction,
-} from "./clipboard/index.ts";
-
 // Form imports
 import {
-	formRestoreAction,
-	formEvaluator,
 	formContextProvider,
+	formEvaluator,
+	formRestoreAction,
 } from "./form/index.ts";
 
 // Personality imports
 import {
-	modifyCharacterAction,
 	characterEvolutionEvaluator,
+	modifyCharacterAction,
 	userPersonalityProvider,
 } from "./personality/index.ts";
 
 // Re-export action, provider, and evaluator modules
-export * from "./actions/index.ts";
-export * from "./evaluators/index.ts";
-export * from "./providers/index.ts";
-export * from "./experience/index.ts";
+export * from "../features/advanced-capabilities/actions/index.ts";
+export * from "../features/advanced-capabilities/evaluators/index.ts";
+export * from "../features/advanced-capabilities/providers/index.ts";
 export * from "./clipboard/index.ts";
+export * from "./experience/index.ts";
 export * from "./form/index.ts";
 export * from "./personality/index.ts";
 
 // Import for local use
-import * as actions from "./actions/index.ts";
-import * as providers from "./providers/index.ts";
+import * as actions from "../features/advanced-capabilities/actions/index.ts";
+import * as providers from "../features/advanced-capabilities/providers/index.ts";
 
 /**
  * Advanced providers - extended context and state management

@@ -1,26 +1,5 @@
-/**
- * config-field.tsx — React port of the 19 Lit field renderers from config-field.ts.
- *
- * Each renderer is a plain function (props: FieldRenderProps) => JSX.Element.
- * Styling uses Tailwind utility classes + CSS custom properties from base.css.
- *
- * Also exports:
- *  - defaultRenderers map (field type name -> renderer)
- *  - ConfigField wrapper component (label + renderer + help + errors)
- */
 
-import {
-  Button,
-  Checkbox,
-  Select,
-  SelectContent,
-  SelectItem,
-  SELECT_FLOATING_LAYER_NAME,
-  SELECT_FLOATING_LAYER_Z_INDEX,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-} from "@elizaos/app-core";
+
 import { ChevronDown, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -31,6 +10,7 @@ import type {
   FieldRenderProps,
 } from "../../config/config-catalog";
 import { resolveDynamic } from "../../config/config-catalog";
+import { Button, Checkbox, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Switch, SELECT_FLOATING_LAYER_NAME, SELECT_FLOATING_LAYER_Z_INDEX } from "@elizaos/ui";
 import {
   getConfigInputClassName,
   getConfigTextareaClassName,
@@ -394,12 +374,12 @@ export function RenderSelectField(props: FieldRenderProps) {
     <Select
       defaultValue={effectiveValue}
       disabled={props.readonly}
-      onValueChange={(value) => {
+      onValueChange={(value: string) => {
         props.onChange(value === "__none__" ? "" : value);
         fireAction(props, "change");
         fireAction(props, "blur");
       }}
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         if (open) fireAction(props, "click");
       }}
     >
@@ -551,7 +531,7 @@ function SearchableSelectInner({
             className="border border-border bg-card shadow-lg rounded-sm"
           >
             {/* Search input */}
-            <div className="p-1.5 border-b border-border">
+            <div className="p-1.5">
               <input
                 // biome-ignore lint/a11y/noAutofocus: dropdown search needs immediate focus
                 autoFocus
@@ -616,7 +596,7 @@ function SearchableSelectInner({
                 </Button>
               ))}
             </div>
-            <div className="px-3 py-1 border-t border-border text-2xs text-muted">
+            <div className="px-3 py-1 text-2xs text-muted">
               {filtered.length} of {options.length}{" "}
               {t("config-field.options", { defaultValue: "options" })}
             </div>
@@ -1796,19 +1776,19 @@ function TableFieldInner(props: FieldRenderProps) {
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="text-left text-xs-tight font-semibold text-muted px-3 py-1.5 border-b border-border"
+                  className="text-left text-xs-tight font-semibold text-muted px-3 py-1.5"
                 >
                   {col.label}
                 </th>
               ))}
-              <th className="w-[36px] border-b border-border" />
+              <th className="w-[36px]" />
             </tr>
           </thead>
           <tbody>
             {rows.map((row, ri) => (
               <tr
                 key={JSON.stringify(row)}
-                className="border-b border-border last:border-b-0"
+                className=""
               >
                 {columns.map((col) => (
                   <td key={col.key} className="px-1 py-0.5">

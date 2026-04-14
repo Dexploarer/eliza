@@ -7,18 +7,20 @@ import {
 } from "./managed-test-command.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(here, "..", "..");
+// test/scripts → repo root (same as test-runner.mjs)
+const repoRoot = path.resolve(here, "..", "..", "..", "..", "..");
 const nodeCmd = resolveNodeCmd();
 const unitEnv = buildTestEnv(repoRoot);
 
 const unitShards = [
   {
     label: "unit:agent-src",
-    patterns: ["packages/agent/src"],
+    patterns: ["eliza/packages/agent/src"],
   },
   {
     label: "unit:agent-tests",
-    patterns: ["packages/agent/test"],
+    patterns: ["eliza/packages/agent/test"],
+    passWithNoTests: true,
   },
   {
     label: "unit:app-core",
@@ -30,7 +32,7 @@ const unitShards = [
   {
     label: "unit:plugins",
     patterns: [
-      "packages/agent/src/runtime/roles/test",
+      "eliza/packages/agent/src/runtime/roles/test",
       "eliza/apps/app-lifeops/src/selfcontrol",
       "packages/plugin-wechat/src",
       "eliza/plugins/plugin-music-player/src",
@@ -42,7 +44,7 @@ const unitShards = [
     patterns: [
       "src",
       "scripts",
-      "apps/app/electrobun/src",
+      "eliza/packages/app-core/platforms/electrobun/src",
       "apps/chrome-extension",
       "test/format-error.test.ts",
     ],
@@ -59,8 +61,9 @@ for (const shard of unitShards) {
       "./node_modules/.bin/vitest",
       "run",
       "--config",
-      "vitest.config.ts",
+      "test/vitest/default.config.ts",
       "--reporter=dot",
+      ...(shard.passWithNoTests ? ["--passWithNoTests"] : []),
       ...shard.patterns,
     ],
     cwd: repoRoot,

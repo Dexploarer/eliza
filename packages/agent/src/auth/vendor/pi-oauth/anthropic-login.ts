@@ -1,6 +1,6 @@
 /**
  * Anthropic OAuth (Claude Pro/Max) — authorization code + PKCE.
- * Inlined from @mariozechner/pi-ai@0.52.12 (MIT) — dependency removed.
+ * Inlined OAuth flow (MIT) — vendored to avoid a runtime dependency.
  */
 
 import { generatePKCE } from "./pkce.js";
@@ -64,8 +64,7 @@ export async function loginAnthropic(
     access_token: string;
     expires_in: number;
   };
-  const expiresAt =
-    Date.now() + tokenData.expires_in * 1000 - 5 * 60 * 1000;
+  const expiresAt = Date.now() + tokenData.expires_in * 1000 - 5 * 60 * 1000;
   return {
     refresh: tokenData.refresh_token,
     access: tokenData.access_token,

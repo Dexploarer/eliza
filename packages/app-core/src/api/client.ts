@@ -51,10 +51,16 @@ import type {
   SolanaTokenBalance,
   StewardApprovalActionResponse,
   StewardApprovalInfo,
+  StewardBalanceResponse,
   StewardHistoryResponse,
   StewardPendingResponse,
   StewardPolicyResult,
   StewardStatusResponse,
+  StewardTokenBalancesResponse,
+  StewardWalletAddressesResponse,
+  StewardWebhookEvent,
+  StewardWebhookEventsResponse,
+  StewardWebhookEventType,
   WalletAddresses,
   WalletBalancesResponse,
   WalletConfigStatus,
@@ -150,6 +156,7 @@ export type {
   SolanaTokenBalance,
   StewardApprovalActionResponse,
   StewardApprovalInfo,
+  StewardBalanceResponse,
   StewardHistoryResponse,
   StewardPendingApproval,
   StewardPendingResponse,
@@ -157,8 +164,13 @@ export type {
   StewardSignRequest,
   StewardSignResponse,
   StewardStatusResponse,
+  StewardTokenBalancesResponse,
   StewardTxRecord,
   StewardTxStatus,
+  StewardWalletAddressesResponse,
+  StewardWebhookEvent,
+  StewardWebhookEventsResponse,
+  StewardWebhookEventType,
   StylePreset,
   SubscriptionProviderStatus,
   SubscriptionStatusResponse,
@@ -199,7 +211,7 @@ import "./client-chat";
 import "./client-wallet";
 import "./client-cloud";
 import "./client-skills";
-import "./client-vincent";
+import "@elizaos/app-vincent/client";
 
 // ---------------------------------------------------------------------------
 // Singleton

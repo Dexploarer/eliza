@@ -1,6 +1,4 @@
-/** ApiKeyConfig — Local AI provider settings (API key input forms). */
 
-import { Button } from "@elizaos/app-core";
 import { useCallback, useState } from "react";
 import { client, type PluginParamDef } from "../../api";
 import {
@@ -12,6 +10,7 @@ import { useTimeout } from "../../hooks";
 import { useApp } from "../../state";
 import type { ConfigUiHint } from "../../types";
 import { autoLabel } from "../../utils/labels";
+import { Button } from "@elizaos/ui";
 
 interface ProviderPlugin {
   id: string;
@@ -144,7 +143,7 @@ export function ApiKeyConfig({
   }
 
   return (
-    <div className="mt-4 pt-4 border-t border-border">
+    <div className="mt-4 pt-4">
       <div className="flex justify-between items-center mb-3">
         <div className="text-xs font-semibold">
           {selectedProvider.name} {t("nav.settings")}

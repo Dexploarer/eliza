@@ -1,24 +1,5 @@
-/**
- * Database View — Supabase-style table browser + SQL editor.
- *
- * Two modes:
- *  - Table browser: sidebar with schema tree, spreadsheet-like data grid
- *  - SQL editor: code textarea with run button and results grid
- */
 
-import {
-  Button,
-  Input,
-  MetaPill,
-  PageLayout,
-  PagePanel,
-  SegmentedControl,
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarPanel,
-  SidebarScrollRegion,
-} from "@elizaos/app-core";
+
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -39,6 +20,7 @@ import {
   type SortDir,
 } from "./database-utils";
 import { SqlEditorPanel } from "./SqlEditorPanel";
+import { PagePanel, MetaPill, SidebarContent, SidebarHeader, SidebarPanel, Sidebar, SidebarScrollRegion, Button, Input, SegmentedControl, PageLayout } from "@elizaos/ui";
 
 export function DatabaseView({
   leftNav,
@@ -416,6 +398,7 @@ export function DatabaseView({
 
     return (
       <PageLayout
+        data-testid="database-view"
         sidebar={dbSidebar}
         contentHeader={contentHeader}
         contentInnerClassName="w-full min-h-0"
@@ -630,7 +613,7 @@ export function DatabaseView({
         <div className="flex flex-1 min-h-0 gap-4">
           {(showExternalSidebar || !sidebarCollapsed) && (
             <aside
-              className={`overflow-hidden rounded-2xl border shadow-sm flex min-h-0 w-full shrink-0 flex-col overflow-hidden border-b border-border/34 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--card)_76%,transparent),color-mix(in_srgb,var(--bg-muted)_97%,transparent))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_-1px_0_0_rgba(255,255,255,0.03)] backdrop-blur-md lg:border-b-0 lg:border-r dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_-1px_0_0_rgba(255,255,255,0.02)] ${
+              className={`overflow-hidden rounded-2xl border shadow-sm flex min-h-0 w-full shrink-0 flex-col overflow-hidden bg-[linear-gradient(180deg,color-mix(in_srgb,var(--card)_76%,transparent),color-mix(in_srgb,var(--bg-muted)_97%,transparent))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_-1px_0_0_rgba(255,255,255,0.03)] backdrop-blur-md dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_-1px_0_0_rgba(255,255,255,0.02)] ${
                 showExternalSidebar
                   ? "w-[21rem] max-w-[352px] shrink-0"
                   : "w-[220px] flex-shrink-0"
@@ -856,7 +839,7 @@ export function DatabaseView({
         /* ── SQL Editor ────────────────────────────────────────── */
         <div className="flex flex-1 min-h-0 gap-4">
           {showExternalSidebar && (
-            <aside className="w-[21rem] max-w-[352px] shrink-0 overflow-hidden rounded-3xl border border-border/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_30px_-28px_rgba(15,23,42,0.18)] flex min-h-0 w-full flex-col border-b bg-[linear-gradient(180deg,color-mix(in_srgb,var(--card)_76%,transparent),color-mix(in_srgb,var(--bg-muted)_97%,transparent))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_-1px_0_0_rgba(255,255,255,0.03)] backdrop-blur-md lg:border-b-0 lg:border-r dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_-1px_0_0_rgba(255,255,255,0.02)]">
+            <aside className="w-[21rem] max-w-[352px] shrink-0 overflow-hidden rounded-3xl border border-border/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_30px_-28px_rgba(15,23,42,0.18)] flex min-h-0 w-full flex-col bg-[linear-gradient(180deg,color-mix(in_srgb,var(--card)_76%,transparent),color-mix(in_srgb,var(--bg-muted)_97%,transparent))] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),inset_-1px_0_0_rgba(255,255,255,0.03)] backdrop-blur-md dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_-1px_0_0_rgba(255,255,255,0.02)]">
               <div className="flex min-h-0 flex-1 flex-col px-3 pb-4 pt-3">
                 {sidebarSummary}
                 <div className="space-y-3 pt-4">

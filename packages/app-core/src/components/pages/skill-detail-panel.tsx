@@ -7,19 +7,10 @@
 import type { SkillInfo } from "../../api";
 import { client } from "../../api";
 import { useApp } from "../../state";
-import {
-  AdminCodeEditor,
-  AdminDialogContent,
-  AdminDialogHeader,
-  AdminMonoMeta,
-  Button,
-  Dialog,
-  DialogDescription,
-  DialogTitle,
-  Input,
-} from "@elizaos/app-core";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { InstallModal } from "./skill-marketplace";
+import { AdminCodeEditor, AdminDialogContent, AdminDialogHeader, AdminMonoMeta, Button, Dialog, DialogDescription, DialogTitle, Input } from "@elizaos/ui";
 
 const BINANCE_SKILL_IDS = new Set([
   "binance-crypto-market-rank",
@@ -169,7 +160,7 @@ export function EditSkillModal({
             />
           )}
         </div>
-        <div className="flex shrink-0 items-center justify-between border-t border-border px-5 py-3">
+        <div className="flex shrink-0 items-center justify-between px-5 py-3">
           <div className="text-xs-tight text-muted">
             {content
               ? `${content.split("\n").length} ${t("trajectorydetailview.lines")}`

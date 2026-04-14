@@ -8,27 +8,27 @@ import {
 } from "@elizaos/shared";
 import type { ElizaConfig } from "../config/config.js";
 import { loadElizaConfig, saveElizaConfig } from "../config/config.js";
-import { applyPluginRuntimeMutation } from "./plugin-runtime-apply.js";
-import {
-  CORE_PLUGINS,
-  OPTIONAL_CORE_PLUGINS,
-} from "../runtime/core-plugins.js";
 import {
   getPluginWidgets,
   type PluginWidgetDeclarationServer,
 } from "../config/plugin-widgets.js";
 import { resolveDefaultAgentWorkspaceDir } from "../providers/workspace.js";
+import {
+  CORE_PLUGINS,
+  OPTIONAL_CORE_PLUGINS,
+} from "../runtime/core-plugins.js";
+import type { ResolvedPlugin } from "../runtime/plugin-types.js";
 import type {
   CoreManagerLike,
   InstallProgressLike,
   PluginManagerLike,
 } from "../services/plugin-manager-types.js";
+import type { ReadJsonBodyOptions } from "./http-helpers.js";
+import { applyPluginRuntimeMutation } from "./plugin-runtime-apply.js";
 import {
   type PluginParamInfo,
   validatePluginConfig,
 } from "./plugin-validation.js";
-import type { ReadJsonBodyOptions } from "./http-helpers.js";
-import type { ResolvedPlugin } from "../runtime/eliza.js";
 
 /** Workspace packages use `@elizaos/plugin-*` or `@elizaos/app-*` — normalize list/toggle ids. */
 function optionalPluginListId(npmName: string): string {
@@ -113,6 +113,17 @@ interface SecretEntry {
   usedBy: Array<{ pluginId: string; pluginName: string; enabled: boolean }>;
 }
 
+type CoreToggleDriftFlag = "entries_vs_allowlist" | "entries_vs_compat";
+
+interface CoreToggleDriftDiagnostic {
+  pluginId: string;
+  npmName: string;
+  enabled_allowlist: boolean;
+  enabled_entries: boolean | null;
+  enabled_compat: boolean | null;
+  drift_flags: CoreToggleDriftFlag[];
+}
+
 export interface PluginRouteContext {
   req: http.IncomingMessage;
   res: http.ServerResponse;
@@ -174,6 +185,66 @@ const pluginsListInFlight = new WeakMap<
   PluginRouteContext["state"],
   Promise<PluginEntry[]>
 >();
+
+function readCompatEnabledFromConfig(
+  config: ElizaConfig,
+  pluginId: string,
+): boolean | null {
+  const asRecord = (value: unknown): Record<string, unknown> | null => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return null;
+    }
+    return value as Record<string, unknown>;
+  };
+
+  const legacyStreaming = asRecord(
+    (config as Record<string, unknown>).streaming,
+  );
+  const container =
+    asRecord(config.connectors)?.[pluginId] ?? legacyStreaming?.[pluginId];
+  const value = asRecord(container)?.enabled;
+  return typeof value === "boolean" ? value : null;
+}
+
+function buildCoreToggleDiagnostics(
+  config: ElizaConfig,
+  npmName: string,
+): CoreToggleDriftDiagnostic | null {
+  const pluginId = optionalPluginListId(npmName);
+  const isOptional = (OPTIONAL_CORE_PLUGINS as readonly string[]).includes(
+    npmName,
+  );
+  if (!isOptional) {
+    return null;
+  }
+  const allowList = new Set(config.plugins?.allow ?? []);
+  const enabledAllowList = allowList.has(npmName) || allowList.has(pluginId);
+  const entryEnabledRaw = config.plugins?.entries?.[pluginId]?.enabled;
+  const enabledEntries =
+    typeof entryEnabledRaw === "boolean" ? entryEnabledRaw : null;
+  const enabledCompat = readCompatEnabledFromConfig(config, pluginId);
+  const driftFlags: CoreToggleDriftFlag[] = [];
+
+  if (enabledEntries !== null && enabledEntries !== enabledAllowList) {
+    driftFlags.push("entries_vs_allowlist");
+  }
+  if (
+    enabledEntries !== null &&
+    enabledCompat !== null &&
+    enabledEntries !== enabledCompat
+  ) {
+    driftFlags.push("entries_vs_compat");
+  }
+
+  return {
+    pluginId,
+    npmName,
+    enabled_allowlist: enabledAllowList,
+    enabled_entries: enabledEntries,
+    enabled_compat: enabledCompat,
+    drift_flags: driftFlags,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Route handler
@@ -277,7 +348,9 @@ export async function handlePluginRoutes(
     const configEntries = (
       freshConfig.plugins as Record<string, unknown> | undefined
     )?.entries as Record<string, { enabled?: boolean }> | undefined;
-    const loadedNames = state.runtime ? state.runtime.plugins.map((p) => p.name) : [];
+    const loadedNames = state.runtime
+      ? state.runtime.plugins.map((p) => p.name)
+      : [];
     for (const plugin of allPlugins) {
       const installedMetadata =
         (plugin.npmName ? installedMetadataByName.get(plugin.npmName) : null) ??
@@ -322,7 +395,8 @@ export async function handlePluginRoutes(
           | Record<string, unknown>
           | undefined;
         const packageName = `@elizaos/plugin-${plugin.id}`;
-        const hasInstallRecord = installs?.[packageName] || installs?.[plugin.id];
+        const hasInstallRecord =
+          installs?.[packageName] || installs?.[plugin.id];
         if (hasInstallRecord) {
           plugin.loadError =
             "Plugin installed but failed to load — the package may be missing compiled files.";
@@ -383,7 +457,9 @@ export async function handlePluginRoutes(
         if (!param.key.toUpperCase().includes("MODEL")) continue;
 
         const expectedCat = paramKeyToCategory(param.key);
-        const filtered = providerModels.filter((m) => m.category === expectedCat);
+        const filtered = providerModels.filter(
+          (m) => m.category === expectedCat,
+        );
 
         if (!plugin.configUiHints) plugin.configUiHints = {};
         plugin.configUiHints[param.key] = {
@@ -1506,7 +1582,7 @@ export async function handlePluginRoutes(
       req,
       res,
     );
-    if (!body || !body.npmName) return true;
+    if (!body?.npmName) return true;
 
     // Only allow toggling optional plugins, not core
     const isCorePlugin = (CORE_PLUGINS as readonly string[]).includes(
@@ -1592,6 +1668,18 @@ export async function handlePluginRoutes(
       loadedPackages: runtimeApply.loadedPackages,
       unloadedPackages: runtimeApply.unloadedPackages,
       reloadedPackages: runtimeApply.reloadedPackages,
+      diagnostics: (() => {
+        const diagnostic = buildCoreToggleDiagnostics(
+          state.config,
+          body.npmName,
+        );
+        return diagnostic && diagnostic.drift_flags.length > 0
+          ? {
+              withDrift: true,
+              plugin: diagnostic,
+            }
+          : undefined;
+      })(),
       message: runtimeApply.requiresRestart
         ? `${shortId} ${body.enabled ? "enabled" : "disabled"}. Restart required.`
         : `${shortId} ${body.enabled ? "enabled" : "disabled"}.`,
