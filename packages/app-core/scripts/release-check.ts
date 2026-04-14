@@ -237,14 +237,33 @@ const requiredElectrobunConfigSnippets = [
   'postBuild: "scripts/postwrap-sign-runtime-macos.ts"',
   'postWrap: "scripts/postwrap-diagnostics.ts"',
   "process.env.ELIZA_ELECTROBUN_NOTARIZE ??",
-  '"../../../plugins.json": `${runtimeDistDir}/plugins.json`',
-  '"../../../package.json": `${runtimeDistDir}/package.json`',
+  "[repoPluginsJsonPath]: `${runtimeDistDir}/plugins.json`",
+  "[repoPackageJsonPath]: `${runtimeDistDir}/package.json`",
 ];
 const localPackHotspotPaths = [
   "dist/node_modules",
   "apps/app/dist/vrms",
   "apps/app/dist/animations",
 ];
+const electrobunDirCandidates = [
+  resolve("eliza", "packages", "app-core", "platforms", "electrobun"),
+  resolve("apps", "app", "electrobun"),
+];
+
+function resolveElectrobunPath(...segments: string[]) {
+  for (const candidate of electrobunDirCandidates) {
+    const targetPath = resolve(candidate, ...segments);
+    if (existsSync(targetPath)) {
+      return targetPath;
+    }
+  }
+
+  return resolve(electrobunDirCandidates[0]!, ...segments);
+}
+
+function readElectrobunFile(...segments: string[]) {
+  return readFileSync(resolveElectrobunPath(...segments), "utf8");
+}
 
 type RootPackageJson = {
   bundleDependencies?: string[];
@@ -864,10 +883,7 @@ function assertElectrobunPrWorkflowExists() {
 }
 
 function assertElectrobunConfigHasPostWrapSigner() {
-  const config = readFileSync(
-    "apps/app/electrobun/electrobun.config.ts",
-    "utf8",
-  );
+  const config = readElectrobunFile("electrobun.config.ts");
   const missing = requiredElectrobunConfigSnippets.filter(
     (snippet) => !config.includes(snippet),
   );
@@ -884,10 +900,7 @@ function assertElectrobunConfigHasPostWrapSigner() {
 }
 
 function assertMacArtifactStagerLooksCorrect() {
-  const script = readFileSync(
-    "apps/app/electrobun/scripts/stage-macos-release-artifacts.sh",
-    "utf8",
-  );
+  const script = readElectrobunFile("scripts", "stage-macos-release-artifacts.sh");
   const requiredSnippets = [
     'find "$ARTIFACTS_DIR" -maxdepth 1 -type f -name "*-macos-*.app.tar.zst"',
     "no macOS updater tarball found",
@@ -937,10 +950,7 @@ function assertMacArtifactStagerLooksCorrect() {
 }
 
 function assertWindowsSmokeScriptHasLeadingParamBlock() {
-  const script = readFileSync(
-    "apps/app/electrobun/scripts/smoke-test-windows.ps1",
-    "utf8",
-  );
+  const script = readElectrobunFile("scripts", "smoke-test-windows.ps1");
   const firstRelevantLine = script
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -1007,9 +1017,9 @@ function assertWindowsSmokeScriptHasLeadingParamBlock() {
 }
 
 function assertWindowsInstallerProofScript() {
-  const script = readFileSync(
-    "apps/app/electrobun/scripts/verify-windows-installer-proof.ps1",
-    "utf8",
+  const script = readElectrobunFile(
+    "scripts",
+    "verify-windows-installer-proof.ps1",
   );
 
   const requiredSnippets = [
@@ -1100,10 +1110,7 @@ function assertInnoTemplateTargetsBundledLauncher() {
 }
 
 function assertMacSmokeScriptLaunchesPackagedLauncherDirectly() {
-  const script = readFileSync(
-    "apps/app/electrobun/scripts/smoke-test.sh",
-    "utf8",
-  );
+  const script = readElectrobunFile("scripts", "smoke-test.sh");
 
   if (
     !script.includes(

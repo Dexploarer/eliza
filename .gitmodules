@@ -68,13 +68,13 @@
 	path = plugins/plugin-openrouter
 	url = https://github.com/elizaos-plugins/plugin-openrouter.git
 	branch = alpha
+[submodule "plugins/plugin-pi-ai"]
+	path = plugins/plugin-pi-ai
+	url = https://github.com/elizaos-plugins/plugin-pi-ai.git
 [submodule "plugins/plugin-pdf"]
 	path = plugins/plugin-pdf
 	url = https://github.com/elizaos-plugins/plugin-pdf.git
 	branch = alpha
-[submodule "plugins/plugin-pi-ai"]
-	path = plugins/plugin-pi-ai
-	url = https://github.com/elizaos-plugins/plugin-pi-ai.git
 [submodule "plugins/plugin-selfcontrol"]
 	path = plugins/plugin-selfcontrol
 	url = https://github.com/elizaos-plugins/plugin-selfcontrol.git

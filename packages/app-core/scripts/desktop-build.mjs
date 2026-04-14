@@ -16,7 +16,26 @@ const ROOT = process.cwd();
 const appArgMatch = process.argv.find((a) => a.startsWith("--app="));
 const appName = appArgMatch ? appArgMatch.split("=")[1] : "app";
 const APP_DIR = path.join(ROOT, "apps", appName);
-const ELECTROBUN_DIR = path.join(APP_DIR, "electrobun");
+const DEFAULT_ELECTROBUN_DIR = path.join(
+  ROOT,
+  "eliza",
+  "packages",
+  "app-core",
+  "platforms",
+  "electrobun",
+);
+const ELECTROBUN_DIR =
+  [DEFAULT_ELECTROBUN_DIR, path.join(APP_DIR, "electrobun")].find((dir) =>
+    fs.existsSync(dir),
+  ) ?? DEFAULT_ELECTROBUN_DIR;
+const ELECTROBUN_STAGE_SCRIPT = path.relative(
+  ROOT,
+  path.join(
+    ELECTROBUN_DIR,
+    "scripts",
+    "stage-macos-release-artifacts.sh",
+  ),
+);
 const PROFILE_EXCLUDED_OPTIONAL_PACKS = {
   full: [],
   "no-streaming": ["streaming"],
@@ -549,7 +568,7 @@ function packageDesktopBuild() {
   if (stageMacosReleaseApp && process.platform === "darwin") {
     run(
       "bash",
-      ["apps/app/electrobun/scripts/stage-macos-release-artifacts.sh"],
+      [ELECTROBUN_STAGE_SCRIPT],
       {
         cwd: ROOT,
         env: {
