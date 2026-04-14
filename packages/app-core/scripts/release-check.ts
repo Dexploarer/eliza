@@ -19,12 +19,21 @@ const requiredPaths = [
 ];
 const forbiddenPrefixes = ["dist/Eliza.app/"];
 const orchestratorBrokenLifecycleTarget = "./scripts/ensure-node-pty.mjs";
-const orchestratorPluginPackageJsonPath = resolve(
-  "eliza",
-  "plugins",
-  "plugin-agent-orchestrator",
-  "package.json",
-);
+const orchestratorPluginPackageJsonPathCandidates = [
+  resolve("eliza", "plugins", "plugin-agent-orchestrator", "package.json"),
+  resolve(
+    ".eliza.ci-disabled",
+    "plugins",
+    "plugin-agent-orchestrator",
+    "package.json",
+  ),
+  resolve(
+    "node_modules",
+    "@elizaos",
+    "plugin-agent-orchestrator",
+    "package.json",
+  ),
+] as const;
 const autonomousServerPathCandidates = [
   "node_modules/@elizaos/agent/src/api/server.js",
   "eliza/packages/agent/src/api/server.ts",
@@ -36,6 +45,14 @@ const autonomousElizaPathCandidates = [
 const homepageReleaseDataPathCandidates = [
   "apps/homepage/src/generated/release-data.ts",
 ] as const;
+
+function resolveExistingPath(candidates: readonly string[]) {
+  return candidates.find((candidate) => existsSync(candidate)) ?? null;
+}
+
+function resolveOrchestratorPluginPackageJsonPath() {
+  return resolveExistingPath(orchestratorPluginPackageJsonPathCandidates);
+}
 const requiredWorkflowSnippets = [
   'BUN_VERSION: "1.3.11"',
   "workflow_call:",
@@ -682,6 +699,8 @@ function assertBundledAgentOrchestratorInstallFix() {
   const rootPackage = JSON.parse(
     readFileSync("package.json", "utf8"),
   ) as RootPackageJson;
+  const orchestratorPluginPackageJsonPath =
+    resolveOrchestratorPluginPackageJsonPath();
   if (!bundlesDependency(rootPackage, "@elizaos/plugin-agent-orchestrator")) {
     console.error(
       "release-check: package.json must bundle @elizaos/plugin-agent-orchestrator so packaged Eliza includes the standalone orchestrator implementation.",
@@ -689,10 +708,13 @@ function assertBundledAgentOrchestratorInstallFix() {
     process.exit(1);
   }
 
-  if (!existsSync(orchestratorPluginPackageJsonPath)) {
+  if (!orchestratorPluginPackageJsonPath) {
     console.error(
-      "release-check: eliza/plugins/plugin-agent-orchestrator/package.json is missing.",
+      "release-check: @elizaos/plugin-agent-orchestrator/package.json is missing from all expected locations.",
     );
+    for (const candidate of orchestratorPluginPackageJsonPathCandidates) {
+      console.error(`  - ${candidate}`);
+    }
     process.exit(1);
   }
 
@@ -723,6 +745,8 @@ function assertOrchestratorVersionPinned() {
   const rootPackage = JSON.parse(
     readFileSync("package.json", "utf8"),
   ) as RootPackageJson;
+  const orchestratorPluginPackageJsonPath =
+    resolveOrchestratorPluginPackageJsonPath();
   const version =
     rootPackage.dependencies?.["@elizaos/plugin-agent-orchestrator"];
   if (!version) {
@@ -732,10 +756,13 @@ function assertOrchestratorVersionPinned() {
     process.exit(1);
   }
   if (isWorkspaceSpecifier(version)) {
-    if (!existsSync(orchestratorPluginPackageJsonPath)) {
+    if (!orchestratorPluginPackageJsonPath) {
       console.error(
-        "release-check: @elizaos/plugin-agent-orchestrator is configured as workspace:*, but eliza/plugins/plugin-agent-orchestrator/package.json is missing.",
+        "release-check: @elizaos/plugin-agent-orchestrator is configured as workspace:*, but no local package.json was found.",
       );
+      for (const candidate of orchestratorPluginPackageJsonPathCandidates) {
+        console.error(`  - ${candidate}`);
+      }
       process.exit(1);
     }
     return;
