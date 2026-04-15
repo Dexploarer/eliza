@@ -64,16 +64,16 @@ const libMacWindowEffectsDylib = path.join(
 export function createElectrobunConfig(): ElectrobunConfig {
   const appName =
     (process.env.ELIZA_APP_NAME ?? process.env.ELIZA_APP_NAME ?? "").trim() ||
-    "elizaOS";
+    "Milady";
   const appId =
     (process.env.ELIZA_APP_ID ?? process.env.ELIZA_APP_ID ?? "").trim() ||
-    "ai.elizaos.app";
+    "com.miladyai.milady";
   const urlScheme =
     (
       process.env.ELIZA_URL_SCHEME ??
       process.env.ELIZA_URL_SCHEME ??
       ""
-    ).trim() || "elizaos";
+    ).trim() || "milady";
   const releaseUrl =
     (
       process.env.ELIZA_RELEASE_URL ??
@@ -81,7 +81,7 @@ export function createElectrobunConfig(): ElectrobunConfig {
       ""
     ).trim() || "";
   const runtimeDistDir =
-    (process.env.ELIZA_RUNTIME_DIST_DIR ?? "").trim() || "eliza-dist";
+    (process.env.ELIZA_RUNTIME_DIST_DIR ?? "").trim() || "milady-dist";
   // Note: All paths relative to electrobun.config.ts location
   // (eliza/packages/app-core/platforms/electrobun/)
   // ../../../../../ goes to milady repo root where dist/, plugins.json, package.json exist
@@ -111,7 +111,7 @@ export function createElectrobunConfig(): ElectrobunConfig {
       views: {},
       // Watch these extra dirs in dev --watch mode so changes to the Vite
       // renderer build or shared types trigger a bun-side rebuild + relaunch.
-      watch: ["../dist", "src/shared/", "src/bridge/"],
+      watch: ["../dist", "src/shared/", "src/bridge/", "src/native/"],
       // Ignore test files and build artifacts from watch triggers.
       watchIgnore: [
         "src/**/*.test.ts",

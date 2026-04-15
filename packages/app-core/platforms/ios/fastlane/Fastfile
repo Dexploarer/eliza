@@ -8,7 +8,7 @@ platform :ios do
 
     match(
       type: "appstore",
-      app_identifier: "ai.elizaos.app",
+      app_identifier: "com.miladyai.milady",
       readonly: is_ci
     )
   end
@@ -23,7 +23,7 @@ platform :ios do
       export_method: "app-store",
       export_options: {
         provisioningProfiles: {
-          "ai.elizaos.app" => "match AppStore ai.elizaos.app"
+          "com.miladyai.milady" => "match AppStore com.miladyai.milady"
         }
       },
       output_directory: "build",

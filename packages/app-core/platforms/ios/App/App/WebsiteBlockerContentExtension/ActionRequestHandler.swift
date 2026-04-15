@@ -16,7 +16,7 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
 }
 
 private enum WebsiteBlockerContentBlockerStore {
-    static let appGroupIdentifier = "group.ai.elizaos.app"
+    static let appGroupIdentifier = "group.com.miladyai.milady"
     static let stateKey = "website_blocker_state_v1"
 
     private struct StoredState: Codable {

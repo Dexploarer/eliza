@@ -95,6 +95,7 @@
     "@elizaos/core": "workspace:*",
     "@elizaos/agent": "workspace:*",
     "@elizaos/plugin-wechat": "github:milady-ai/plugin-wechat",
+    "@elizaos/ui": "workspace:*",
     "@stwd/sdk": "^0.3.0",
     "lucide-react": "^0.575.0",
     "zod": "^4.3.6",

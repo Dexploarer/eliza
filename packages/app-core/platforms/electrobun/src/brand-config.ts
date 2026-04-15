@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 /**
- * Brand configuration for the elizaOS desktop shell.
+ * Brand configuration for the Milady desktop shell.
  *
  * All user-facing brand strings (app name, identifiers, URLs) are resolved
  * here from environment variables with sensible defaults. Brand-specific
@@ -17,7 +17,7 @@ export interface DesktopBrandConfig {
   appName: string;
   /** Reverse-DNS app identifier (macOS bundle ID, etc.). */
   appId: string;
-  /** URL scheme for deep links (e.g. "elizaos" -> elizaos://). */
+  /** URL scheme for deep links (e.g. "milady" -> milady://). */
   urlScheme: string;
   /** Base URL for release/update artifacts. */
   releaseUrl: string;
@@ -72,7 +72,10 @@ function envFallback(...keys: string[]): string {
 }
 
 function loadFileConfig(): Partial<DesktopBrandConfig> {
-  const envPath = envFallback("ELIZA_BRAND_CONFIG_PATH", "ELIZA_BRAND_CONFIG_PATH");
+  const envPath = envFallback(
+    "ELIZA_BRAND_CONFIG_PATH",
+    "ELIZA_BRAND_CONFIG_PATH",
+  );
   const candidatePaths = [
     envPath,
     path.resolve(process.cwd(), "brand-config.json"),
@@ -96,27 +99,27 @@ function loadFileConfig(): Partial<DesktopBrandConfig> {
 }
 
 const DEFAULT_CONFIG: DesktopBrandConfig = {
-  appName: "elizaOS",
-  appId: "ai.elizaos.app",
-  urlScheme: "elizaos",
+  appName: "Milady",
+  appId: "com.miladyai.milady",
+  urlScheme: "milady",
   releaseUrl: "",
-  configExportFileName: "eliza-config.json",
+  configExportFileName: "milady-config.json",
   appDescription: "AI agents for the desktop",
-  namespace: "eliza",
-  configDirName: "elizaOS",
-  startupLogFileName: "eliza-startup.log",
-  macLaunchAgentPlist: "ai.elizaos.app.plist",
-  macLaunchAgentLabel: "ai.elizaos.app",
-  linuxDesktopFileName: "elizaos.desktop",
-  linuxDesktopEntryName: "elizaOS",
-  windowsRegistryValueName: "elizaOS",
-  cefVersionMarkerFileName: ".eliza-version",
-  runtimeDistDirName: "eliza-dist",
-  mdnsServiceType: "_eliza._tcp",
-  desktopMusicGuildId: "eliza-desktop",
-  browserWorkspacePartition: "persist:eliza-browser",
-  releaseNotesPartition: "persist:eliza-release-notes",
-  cefDesktopPartition: "persist:eliza-desktop-cef",
+  namespace: "milady",
+  configDirName: "Milady",
+  startupLogFileName: "milady-startup.log",
+  macLaunchAgentPlist: "com.miladyai.milady.plist",
+  macLaunchAgentLabel: "com.miladyai.milady",
+  linuxDesktopFileName: "milady.desktop",
+  linuxDesktopEntryName: "Milady",
+  windowsRegistryValueName: "Milady",
+  cefVersionMarkerFileName: ".milady-version",
+  runtimeDistDirName: "milady-dist",
+  mdnsServiceType: "_milady._tcp",
+  desktopMusicGuildId: "milady-desktop",
+  browserWorkspacePartition: "persist:milady-browser",
+  releaseNotesPartition: "persist:milady-release-notes",
+  cefDesktopPartition: "persist:milady-desktop-cef",
   trustedCloseMessageType: "eliza.trusted-eliza-window.close",
 };
 

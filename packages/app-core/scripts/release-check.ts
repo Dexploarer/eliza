@@ -241,7 +241,9 @@ const requiredElectrobunConfigSnippets = [
   '"../../../package.json": `${runtimeDistDir}/package.json`',
 ];
 const localPackHotspotPaths = [
+  "dist",
   "dist/node_modules",
+  "apps/app/dist",
   "apps/app/dist/vrms",
   "apps/app/dist/animations",
 ];
@@ -468,10 +470,6 @@ export function shouldSkipExactPackDryRun(
     return false;
   }
 
-  if (env.CI || env.GITHUB_ACTIONS) {
-    return false;
-  }
-
   if (env.ELIZA_FORCE_PACK_DRY_RUN === "1") {
     return false;
   }
@@ -611,7 +609,7 @@ function readExistingReleaseCheckFile(
 
 function runFastLocalPackCheck(hotspots: string[]) {
   console.warn(
-    "release-check: skipping exact npm pack --dry-run because local desktop build artifacts are present and package.json whitelists broad build directories:",
+    "release-check: skipping exact npm pack --dry-run because build artifacts are present and package.json whitelists broad build directories:",
   );
   for (const hotspot of hotspots) {
     console.warn(`  - ${hotspot}`);
