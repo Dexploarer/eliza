@@ -1,3 +1,9 @@
+/**
+ * Relays managed-gateway RPC requests into the local message runtime.
+ * Untrusted sender and transport metadata is normalized once at ingress so it
+ * cannot influence connection identity differently from persisted metadata.
+ */
+
 import {
   ChannelType,
   type Content,
@@ -26,6 +32,14 @@ const POLL_TIMEOUT_MS = 25_000;
 const REQUEST_TIMEOUT_MS = POLL_TIMEOUT_MS + 5_000;
 const RETRY_DELAY_MS = 2_000;
 const IDLE_DELAY_MS = 250;
+
+/** @internal Persistence and traversal ceilings for untrusted relay metadata. */
+export const GATEWAY_RELAY_METADATA_MAX_BYTES = 10 * 1024;
+export const GATEWAY_RELAY_METADATA_MAX_DEPTH = 32;
+export const GATEWAY_RELAY_METADATA_MAX_NODES = 2_048;
+
+const utf8Encoder = new TextEncoder();
+const METADATA_BUDGET_EXCEEDED = Symbol("gateway-relay-metadata-budget-exceeded");
 
 type RelayRequestMethod = "GET" | "POST" | "DELETE";
 type RelayRuntimeStatus = "idle" | "registered" | "polling" | "error" | "stopped";
@@ -116,20 +130,89 @@ function toJsonRecord(value: unknown): Record<string, unknown> | undefined {
   return isRecord(value) ? value : undefined;
 }
 
-export function toJsonMetadataRecord(
-  value: unknown,
-): Record<string, JsonValue> | undefined {
+function isJsonRecord(value: JsonValue): value is Record<string, JsonValue> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function serializedUtf8Bytes(value: string): number {
+  return utf8Encoder.encode(value).byteLength;
+}
+
+/** @internal Normalizes one RPC metadata object under the relay persistence budget. */
+export function toJsonMetadataRecord(value: unknown): Record<string, JsonValue> | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
 
   try {
-    const parsed: unknown = JSON.parse(JSON.stringify(value));
+    const depths = new WeakMap<object, number>();
+    let nodes = 0;
+    let estimatedBytes = 2;
+    const serialized = JSON.stringify(value, function boundedMetadataReplacer(key, entry) {
+      nodes += 1;
+      if (nodes > GATEWAY_RELAY_METADATA_MAX_NODES) {
+        throw METADATA_BUDGET_EXCEEDED;
+      }
+
+      const parentDepth =
+        typeof this === "object" && this !== null ? depths.get(this) : undefined;
+      const depth = key === "" ? 0 : (parentDepth ?? 0) + 1;
+      if (depth > GATEWAY_RELAY_METADATA_MAX_DEPTH) {
+        throw METADATA_BUDGET_EXCEEDED;
+      }
+      if (typeof entry === "object" && entry !== null) {
+        depths.set(entry, depth);
+      }
+
+      if (key) {
+        if (serializedUtf8Bytes(key) > GATEWAY_RELAY_METADATA_MAX_BYTES) {
+          throw METADATA_BUDGET_EXCEEDED;
+        }
+        estimatedBytes += serializedUtf8Bytes(JSON.stringify(key)) + 2;
+      }
+
+      if (typeof entry === "string") {
+        if (serializedUtf8Bytes(entry) > GATEWAY_RELAY_METADATA_MAX_BYTES) {
+          throw METADATA_BUDGET_EXCEEDED;
+        }
+        estimatedBytes += serializedUtf8Bytes(JSON.stringify(entry));
+      } else if (entry === null || typeof entry === "number" || typeof entry === "boolean") {
+        estimatedBytes += serializedUtf8Bytes(JSON.stringify(entry));
+      } else if (typeof entry === "object") {
+        estimatedBytes += 2;
+      }
+
+      if (estimatedBytes > GATEWAY_RELAY_METADATA_MAX_BYTES) {
+        throw METADATA_BUDGET_EXCEEDED;
+      }
+      return entry;
+    });
+
+    if (
+      typeof serialized !== "string" ||
+      serializedUtf8Bytes(serialized) > GATEWAY_RELAY_METADATA_MAX_BYTES
+    ) {
+      return undefined;
+    }
+
+    const parsed: JsonValue = JSON.parse(serialized);
     // A hostile toJSON() can replace the record root with any JSON value; only
-    // a plain record may flow onward as sender/transport metadata.
-    return isRecord(parsed) ? (parsed as Record<string, JsonValue>) : undefined;
+    // a bounded record may flow onward as sender/transport metadata.
+    return isJsonRecord(parsed) ? parsed : undefined;
   } catch {
-    // error-policy:J3 untrusted metadata may contain circular references or invalid JSON values; fail closed to undefined.
+    // error-policy:J3 untrusted metadata may throw, cycle, or exceed the relay persistence budget.
+    return undefined;
+  }
+}
+
+function normalizeMetadataProperty(
+  owner: Record<string, unknown> | undefined,
+  key: string
+): Record<string, JsonValue> | undefined {
+  try {
+    return toJsonMetadataRecord(owner?.[key]);
+  } catch {
+    // error-policy:J3 even reading an untrusted metadata property may invoke a hostile getter.
     return undefined;
   }
 }
@@ -143,8 +226,8 @@ type GatewayMessagePayload = {
   senderUserName: string;
   senderName: string;
   attachments?: Content["attachments"];
-  senderMetadata?: Record<string, unknown>;
-  transportMetadata?: Record<string, unknown>;
+  senderMetadata?: Record<string, JsonValue>;
+  transportMetadata?: Record<string, JsonValue>;
 };
 
 function buildGatewayMessagePayload(
@@ -177,8 +260,8 @@ function buildGatewayMessagePayload(
     senderUserName,
     senderName,
     attachments: normalizeAttachments(params?.attachments),
-    senderMetadata: toJsonRecord(sender?.metadata),
-    transportMetadata: toJsonRecord(params?.metadata),
+    senderMetadata: normalizeMetadataProperty(sender, "metadata"),
+    transportMetadata: normalizeMetadataProperty(params, "metadata"),
   };
 }
 
@@ -570,8 +653,6 @@ export class CloudManagedGatewayRelayService extends Service {
       `${payload.source}:${payload.roomKey}:${String(rpc.id ?? Date.now())}:inbound`
     );
 
-    const transportMetadata = toJsonMetadataRecord(payload.transportMetadata);
-
     await this.runtime.ensureConnection({
       entityId,
       roomId,
@@ -584,7 +665,7 @@ export class CloudManagedGatewayRelayService extends Service {
       channelId: payload.roomKey,
       type: payload.channelType,
       messageServerId,
-      metadata: transportMetadata,
+      metadata: payload.transportMetadata,
     });
 
     const message = createMessageMemory({
@@ -604,10 +685,8 @@ export class CloudManagedGatewayRelayService extends Service {
       ...(message.metadata as Record<string, JsonValue>),
       entityName: payload.senderName,
       entityUserName: payload.senderUserName,
-      ...(payload.senderMetadata
-        ? { gatewaySender: toJsonMetadataRecord(payload.senderMetadata) }
-        : {}),
-      ...(payload.transportMetadata ? { gatewayMetadata: transportMetadata } : {}),
+      ...(payload.senderMetadata ? { gatewaySender: payload.senderMetadata } : {}),
+      ...(payload.transportMetadata ? { gatewayMetadata: payload.transportMetadata } : {}),
     } as typeof message.metadata;
 
     const callbackTexts: string[] = [];
